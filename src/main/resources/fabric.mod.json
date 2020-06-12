@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "hard-science",
+  "version": "${version}",
+  "name": "Hard Science",
+  "description": "Hard Sci Fi Comes to Minecraft",
+  "authors": [
+    "Grondag"
+  ],
+  "contact": {
+    "homepage": "https://minecraft.curseforge.com/projects/hard-science",
+    "sources": "https://github.com/grondag/hard-science"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/hard-science/hard_science_icon.png",
+
+  "environment": "*",
+  "entrypoints": {
+    "main": [ "grondag.hs.HardScience" ],
+    "client": [ "grondag.hs.client.HardScienceClient" ],
+    "rei_plugins_v0": [ "grondag.hs.compat.rei.HardScienceReiPlugin" ],
+    "modmenu": [ "grondag.hs.client.ModMenuHelper" ]
+  },
+  "depends": {
+    "fabricloader": "\u003e\u003d0.8.4",
+    "minecraft": "~1.16-alpha",
+    "fabric": "*",
+    "fluidity": "*",
+    "exotic-matter": "*"
+  },
+  "custom": {
+    "modmenu:api": false,
+    "modmenu:clientsideOnly": false
+  }
+}
