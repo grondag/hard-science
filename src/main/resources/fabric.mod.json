@@ -18,8 +18,8 @@
   "entrypoints": {
     "main": [ "grondag.hs.HardScience" ],
     "client": [ "grondag.hs.client.HardScienceClient" ],
-    "rei_plugins_v0": [ "grondag.hs.compat.rei.HardScienceReiPlugin" ],
-    "modmenu": [ "grondag.hs.client.ModMenuHelper" ]
+    "rei_plugins_v0": [ "grondag.hs.compat.HsReiPlugin" ],
+    "modmenu": [ "grondag.hs.compat.HsModMenuHelper" ]
   },
   "depends": {
     "fabricloader": "\u003e\u003d0.8.4",

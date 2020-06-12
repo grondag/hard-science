@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
-package grondag.hs.compat.rei;
+package grondag.hs.compat;
 
 import me.shedaniel.rei.api.EntryRegistry;
 import me.shedaniel.rei.api.plugins.REIPluginV0;
@@ -25,7 +25,7 @@ import net.fabricmc.loader.util.version.VersionParsingException;
 
 import grondag.hs.HardScience;
 
-public class HardScienceReiPlugin implements REIPluginV0 {
+public class HsReiPlugin implements REIPluginV0 {
 	public static final Identifier ID = HardScience.REG.id("rei_plugin");
 
 	@Override

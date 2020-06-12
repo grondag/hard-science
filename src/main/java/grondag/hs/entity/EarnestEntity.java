@@ -1,9 +1,16 @@
 package grondag.hs.entity;
 
+import javax.annotation.Nullable;
+
 import io.netty.buffer.Unpooled;
 
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityInteraction;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.InteractionObserver;
+import net.minecraft.entity.Npc;
 import net.minecraft.entity.mob.MobEntityWithAi;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
@@ -15,8 +22,14 @@ import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 
 import grondag.hs.HardScience;
 
-public class EarnestEntity extends MobEntityWithAi {
+public class EarnestEntity extends MobEntityWithAi implements Npc, InteractionObserver {
 	public static Identifier IDENTIFIER = new Identifier(HardScience.MODID, "earnest");
+
+	@Nullable
+	private PlayerEntity customer;
+
+	@Nullable
+	private PlayerEntity lastCustomer;
 
 	public EarnestEntity(EntityType<? extends EarnestEntity> entityType, World world) {
 		super(entityType, world);
@@ -57,5 +70,11 @@ public class EarnestEntity extends MobEntityWithAi {
 		final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 		toBuffer(buf);
 		return ServerSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
+	}
+
+	@Override
+	public void onInteractionWith(EntityInteraction interaction, Entity entity) {
+		// TODO Auto-generated method stub
+
 	}
 }

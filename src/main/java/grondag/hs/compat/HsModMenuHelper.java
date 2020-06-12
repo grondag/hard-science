@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.hs.compat.rei;
+package grondag.hs.compat;
 
 import java.util.function.Function;
 
@@ -29,7 +29,7 @@ import grondag.hs.HardScience;
 import grondag.hs.client.ConfigScreen;
 
 @Environment(EnvType.CLIENT)
-public class ModMenuHelper implements ModMenuApi {
+public class HsModMenuHelper implements ModMenuApi {
 	@Override
 	public Function<Screen, ? extends Screen> getConfigScreenFactory() {
 		return ConfigScreen::getScreen;
