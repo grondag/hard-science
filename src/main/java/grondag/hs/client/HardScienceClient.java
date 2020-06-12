@@ -16,15 +16,21 @@
 package grondag.hs.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
+import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 
 import grondag.fermion.client.ClientRegistrar;
 import grondag.hs.HardScience;
+import grondag.hs.entity.EarnestEntity;
+import grondag.hs.entity.Entities;
 
 public class HardScienceClient implements ClientModInitializer {
 	public static ClientRegistrar REG  = new ClientRegistrar(HardScience.MODID);
 
 	@Override
 	public void onInitializeClient() {
-		ClientRegistrations.values();
+		ClientSidePacketRegistry.INSTANCE.register(EarnestEntity.IDENTIFIER, EarnestNetworkHandler::accept);
+		EntityRendererRegistry.INSTANCE.register(Entities.EARNEST,
+				(entityRenderDispatcher, context) -> new EarnestEntityRenderer(entityRenderDispatcher));
 	}
 }

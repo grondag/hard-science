@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import net.fabricmc.api.ModInitializer;
 
 import grondag.fermion.registrar.Registrar;
+import grondag.hs.entity.Entities;
 
 public class HardScience implements ModInitializer {
 	public static final Logger LOG = LogManager.getLogger("Hard Science");
@@ -30,6 +31,7 @@ public class HardScience implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		Entities.values();
 		HardScienceConfig.init();
 	}
 }
