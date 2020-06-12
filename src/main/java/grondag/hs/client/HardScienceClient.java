@@ -21,6 +21,8 @@ import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 
 import grondag.fermion.client.ClientRegistrar;
 import grondag.hs.HardScience;
+import grondag.hs.client.earnest.EarnestEntityRenderer;
+import grondag.hs.client.earnest.EarnestNetworkHandler;
 import grondag.hs.entity.EarnestEntity;
 import grondag.hs.entity.Entities;
 

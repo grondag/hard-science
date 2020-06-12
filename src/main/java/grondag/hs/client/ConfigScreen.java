@@ -45,7 +45,7 @@ public class ConfigScreen {
 		return Arrays.stream(I18n.translate(key).split(";")).map(s ->  new LiteralText(s)).collect(Collectors.toList()).toArray(new Text[0]);
 	}
 
-	static Screen getScreen(Screen parent) {
+	public static Screen getScreen(Screen parent) {
 
 		final ConfigBuilder builder = ConfigBuilder.create().setParentScreen(parent).setTitle(new TranslatableText("config.facility.title")).setSavingRunnable(ConfigScreen::saveUserInput);
 

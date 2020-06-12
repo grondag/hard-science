@@ -1,4 +1,4 @@
-package grondag.hs.client;
+package grondag.hs.client.earnest;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;

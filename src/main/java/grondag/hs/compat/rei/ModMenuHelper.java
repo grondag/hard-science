@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package grondag.hs.client;
+package grondag.hs.compat.rei;
 
 import java.util.function.Function;
 
@@ -26,6 +26,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
 import grondag.hs.HardScience;
+import grondag.hs.client.ConfigScreen;
 
 @Environment(EnvType.CLIENT)
 public class ModMenuHelper implements ModMenuApi {
