@@ -16,12 +16,18 @@
 package grondag.hs;
 
 
+import nerdhub.cardinal.components.api.event.EntityComponentCallback;
+import nerdhub.cardinal.components.api.util.EntityComponents;
+import nerdhub.cardinal.components.api.util.RespawnCopyStrategy;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import net.minecraft.entity.player.PlayerEntity;
 
 import net.fabricmc.api.ModInitializer;
 
 import grondag.fermion.registrar.Registrar;
+import grondag.hs.earnest.EarnestPlayerData;
 import grondag.hs.entity.Entities;
 
 public class HardScience implements ModInitializer {
@@ -33,5 +39,8 @@ public class HardScience implements ModInitializer {
 	public void onInitialize() {
 		Entities.values();
 		HardScienceConfig.init();
+
+		EntityComponentCallback.event(PlayerEntity.class).register((player, components) -> components.put(EarnestPlayerData.COMPONENT, new EarnestPlayerData(player)));
+		EntityComponents.setRespawnCopyStrategy(EarnestPlayerData.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
 	}
 }

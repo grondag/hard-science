@@ -9,7 +9,7 @@ import net.minecraft.util.Identifier;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.hs.entity.EarnestEntity;
+import grondag.hs.earnest.EarnestEntity;
 
 @Environment(EnvType.CLIENT)
 public class EarnetClothesFeatureRenderer extends FeatureRenderer<EarnestEntity, EarnestEntityModel> {

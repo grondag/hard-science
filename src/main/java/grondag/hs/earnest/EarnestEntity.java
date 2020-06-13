@@ -1,18 +1,21 @@
-package grondag.hs.entity;
+package grondag.hs.earnest;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityInteraction;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.InteractionObserver;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.Npc;
-import net.minecraft.entity.mob.MobEntityWithAi;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Arm;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -22,7 +25,7 @@ import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 
 import grondag.hs.HardScience;
 
-public class EarnestEntity extends MobEntityWithAi implements Npc, InteractionObserver {
+public class EarnestEntity extends LivingEntity implements Npc {
 	public static Identifier IDENTIFIER = new Identifier(HardScience.MODID, "earnest");
 
 	@Nullable
@@ -72,9 +75,39 @@ public class EarnestEntity extends MobEntityWithAi implements Npc, InteractionOb
 		return ServerSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
 	}
 
-	@Override
-	public void onInteractionWith(EntityInteraction interaction, Entity entity) {
-		// TODO Auto-generated method stub
 
+	/**
+	 * Called when a player interacts with this entity.
+	 *
+	 * @param player the player
+	 * @param hand the hand the player used to interact with this entity
+	 */
+	@Override
+	public ActionResult interact(PlayerEntity player, Hand hand) {
+		if (!player.world.isClient) {
+			HardScience.LOG.info(EarnestPlayerData.get(player).addVisit());
+		}
+
+		return ActionResult.PASS;
+	}
+
+	@Override
+	public Iterable<ItemStack> getArmorItems() {
+		return ImmutableList.of();
+	}
+
+	@Override
+	public ItemStack getEquippedStack(EquipmentSlot slot) {
+		return ItemStack.EMPTY;
+	}
+
+	@Override
+	public void equipStack(EquipmentSlot slot, ItemStack stack) {
+		// NOOP
+	}
+
+	@Override
+	public Arm getMainArm() {
+		return Arm.LEFT;
 	}
 }

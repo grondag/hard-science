@@ -10,7 +10,7 @@ import net.minecraft.util.math.Vec3d;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.hs.entity.EarnestEntity;
+import grondag.hs.earnest.EarnestEntity;
 
 @Environment(EnvType.CLIENT)
 public class EarnestEntityRenderer extends LivingEntityRenderer<EarnestEntity, EarnestEntityModel> {

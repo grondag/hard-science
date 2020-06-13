@@ -8,7 +8,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.network.PacketContext;
 
-import grondag.hs.entity.EarnestEntity;
+import grondag.hs.earnest.EarnestEntity;
 import grondag.hs.entity.Entities;
 
 
