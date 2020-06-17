@@ -1,4 +1,15 @@
 {
 	"config.hard-science.title": "Hard Science Configuration",
-	"entity.hard-science.earnest": "Earnest"
+	"entity.hard-science.earnest": "Earnest",
+	
+	"dialog.hard-science.earnest.root" : "Greetings, meat person. Welcome to... whatever this is.",
+	
+	"dialog.hard-science.player.root" : "Change topics.",
+	"dialog.hard-science.player.exit" : "Say goodbye.",
+	"dialog.hard-science.player.question" : "Ask a question.",
+	"dialog.hard-science.player.question.back" : "Go back.",
+	"dialog.hard-science.player.question.earnest" : "Ask about Earnest.",
+	"dialog.hard-science.player.question.space" : "Ask about this place.",
+	"dialog.hard-science.player.offer" : "Make an offer.",
+	"dialog.hard-science.player.request" : "Make a request."
 }

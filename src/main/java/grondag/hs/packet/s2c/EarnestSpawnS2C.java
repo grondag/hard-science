@@ -1,4 +1,4 @@
-package grondag.hs.client.earnest;
+package grondag.hs.packet.s2c;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
@@ -13,7 +13,7 @@ import grondag.hs.entity.Entities;
 
 
 @Environment(EnvType.CLIENT)
-public class EarnestNetworkHandler {
+public class EarnestSpawnS2C {
 	public static void accept(PacketContext context, PacketByteBuf buffer) {
 		final MinecraftClient client = MinecraftClient.getInstance();
 		final EarnestEntity entity = new EarnestEntity(Entities.EARNEST, client.world);

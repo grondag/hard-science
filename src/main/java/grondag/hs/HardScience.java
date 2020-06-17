@@ -25,10 +25,12 @@ import org.apache.logging.log4j.Logger;
 import net.minecraft.entity.player.PlayerEntity;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 
 import grondag.fermion.registrar.Registrar;
-import grondag.hs.earnest.EarnestPlayerData;
+import grondag.hs.earnest.EarnestPlayerState;
 import grondag.hs.entity.Entities;
+import grondag.hs.packet.c2s.EarnestDialogC2S;
 
 public class HardScience implements ModInitializer {
 	public static final Logger LOG = LogManager.getLogger("Hard Science");
@@ -40,7 +42,9 @@ public class HardScience implements ModInitializer {
 		Entities.values();
 		HardScienceConfig.init();
 
-		EntityComponentCallback.event(PlayerEntity.class).register((player, components) -> components.put(EarnestPlayerData.COMPONENT, new EarnestPlayerData(player)));
-		EntityComponents.setRespawnCopyStrategy(EarnestPlayerData.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
+		EntityComponentCallback.event(PlayerEntity.class).register((player, components) -> components.put(EarnestPlayerState.COMPONENT, new EarnestPlayerState(player)));
+		EntityComponents.setRespawnCopyStrategy(EarnestPlayerState.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
+
+		ServerSidePacketRegistry.INSTANCE.register(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
 	}
 }

@@ -1,5 +1,5 @@
 package grondag.hs.earnest.dialog;
 
-public class EarnestDialogData {
+public class Questions {
 
 }

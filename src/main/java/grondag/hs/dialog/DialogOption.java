@@ -1,23 +1,20 @@
 package grondag.hs.dialog;
 
-import net.minecraft.text.Text;
-import net.minecraft.text.TranslatableText;
-
 public class DialogOption<T> {
-	public final Text text;
+	public final String playerText;
+
+	public final boolean journalPlayerText;
 
 	public final DialogAction<T> action;
 
-	public DialogOption(Text text, DialogAction<T> action) {
-		this.text = text;
+
+	public DialogOption(String playerText, boolean journalPlayerText, DialogAction<T> action) {
+		this.playerText = playerText;
+		this.journalPlayerText = journalPlayerText;
 		this.action = action;
 	}
 
-	static <T> DialogOption<T> of(Text text, DialogAction<T> action) {
-		return new DialogOption<>(text, action);
-	}
-
-	static <T> DialogOption<T> of(String textId, DialogAction<T> action) {
-		return new DialogOption<>(new TranslatableText(textId), action);
+	public String playerJournalText() {
+		return journalPlayerText ? playerText : "";
 	}
 }

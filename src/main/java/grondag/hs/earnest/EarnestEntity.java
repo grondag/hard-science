@@ -1,10 +1,11 @@
 package grondag.hs.earnest;
 
-import javax.annotation.Nullable;
+import java.util.IdentityHashMap;
 
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
 
+import net.minecraft.command.arguments.EntityAnchorArgumentType.EntityAnchor;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
@@ -13,6 +14,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Arm;
 import net.minecraft.util.Hand;
@@ -24,15 +26,17 @@ import net.minecraft.world.World;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 
 import grondag.hs.HardScience;
+import grondag.hs.client.earnest.EarnestClientState;
+import grondag.hs.dialog.DialogNode;
+import grondag.hs.dialog.DialogOption;
+import grondag.hs.earnest.dialog.EarnestDialog;
+import grondag.hs.packet.s2c.EarnestDialogS2C;
 
 public class EarnestEntity extends LivingEntity implements Npc {
-	public static Identifier IDENTIFIER = new Identifier(HardScience.MODID, "earnest");
+	public static Identifier IDENTIFIER = HardScience.REG.id("earnest");
 
-	@Nullable
-	private PlayerEntity customer;
-
-	@Nullable
-	private PlayerEntity lastCustomer;
+	// TODO: message clients if Earnest moves or becomes unable to converse
+	private final IdentityHashMap<PlayerEntity, DialogNode<EarnestPlayerState>> dialogs = new IdentityHashMap<>();
 
 	public EarnestEntity(EntityType<? extends EarnestEntity> entityType, World world) {
 		super(entityType, world);
@@ -75,7 +79,6 @@ public class EarnestEntity extends LivingEntity implements Npc {
 		return ServerSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
 	}
 
-
 	/**
 	 * Called when a player interacts with this entity.
 	 *
@@ -84,11 +87,42 @@ public class EarnestEntity extends LivingEntity implements Npc {
 	 */
 	@Override
 	public ActionResult interact(PlayerEntity player, Hand hand) {
-		if (!player.world.isClient) {
-			HardScience.LOG.info(EarnestPlayerData.get(player).addVisit());
+		assert player.world == world;
+
+		if (world.isClient) {
+			EarnestClientState.earnest = this;
+		} else if (!dialogs.containsKey(player)) {
+			player.lookAt(EntityAnchor.EYES, getPos().add(0, getStandingEyeHeight(), 0));
+			final DialogNode<EarnestPlayerState> root = EarnestPlayerState.get(player).rootDialog();
+			dialogs.put(player, root);
+			EarnestDialogS2C.BEGIN.send((ServerPlayerEntity) player, "", root);
 		}
 
-		return ActionResult.PASS;
+		return ActionResult.success(world.isClient);
+	}
+
+	public void endDialog(PlayerEntity player) {
+		assert !world.isClient;
+		dialogs.remove(player);
+	}
+
+	public void advanceDialog(PlayerEntity player, int action) {
+		assert !world.isClient;
+
+		final DialogNode<EarnestPlayerState> oldDialog = dialogs.get(player);
+
+		if (oldDialog != null) {
+			final DialogOption<EarnestPlayerState> chosen = oldDialog.actions.get(action);
+
+			if (chosen == EarnestDialog.EXIT) {
+				dialogs.remove(player);
+				EarnestDialogS2C.END.send((ServerPlayerEntity) player, "", EarnestDialog.EMPTY_DIALOG);
+			} else {
+				final DialogNode<EarnestPlayerState> newDialog = chosen.action.apply(EarnestPlayerState.get(player));
+				dialogs.put(player, newDialog);
+				EarnestDialogS2C.UPDATE.send((ServerPlayerEntity) player, chosen.playerJournalText(), newDialog);
+			}
+		}
 	}
 
 	@Override

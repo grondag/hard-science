@@ -11,12 +11,14 @@ import net.minecraft.nbt.CompoundTag;
 import grondag.fermion.bits.BitPacker;
 import grondag.fermion.bits.BitPacker.IntElement;
 import grondag.hs.HardScience;
+import grondag.hs.dialog.DialogNode;
+import grondag.hs.earnest.dialog.EarnestDialog;
 
-public class EarnestPlayerData implements Component {
+public class EarnestPlayerState implements Component  {
 	private final BitPacker.PackedState state;
 	public final PlayerEntity owner;
 
-	public EarnestPlayerData(PlayerEntity owner) {
+	public EarnestPlayerState(PlayerEntity owner) {
 		this.owner = owner;
 		state = PACKER.newState();
 	}
@@ -49,9 +51,9 @@ public class EarnestPlayerData implements Component {
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (!(o instanceof EarnestPlayerData)) return false;
+		if (!(o instanceof EarnestPlayerState)) return false;
 
-		final EarnestPlayerData other = (EarnestPlayerData) o;
+		final EarnestPlayerState other = (EarnestPlayerState) o;
 
 		return owner == other.owner
 				&& other.state.areBitEqual(other.state);
@@ -62,14 +64,18 @@ public class EarnestPlayerData implements Component {
 		return 31 * state.hashCode() + owner.hashCode();
 	}
 
-	public static final ComponentType<EarnestPlayerData> COMPONENT =
-			ComponentRegistry.INSTANCE.registerIfAbsent(HardScience.REG.id("earnest"), EarnestPlayerData.class);
+	public static final ComponentType<EarnestPlayerState> COMPONENT =
+			ComponentRegistry.INSTANCE.registerIfAbsent(HardScience.REG.id("earnest"), EarnestPlayerState.class);
 
 	private static final BitPacker PACKER = new BitPacker();
 	private static final int VERSION = 0;
 	private static final IntElement VISIT_COUNT = PACKER.createIntElement(0x100000);
 
-	public static EarnestPlayerData get(PlayerEntity player) {
+	public static EarnestPlayerState get(PlayerEntity player) {
 		return COMPONENT.get(ComponentProvider.fromEntity(player));
+	}
+
+	public DialogNode<EarnestPlayerState> rootDialog() {
+		return EarnestDialog.root(this, true);
 	}
 }

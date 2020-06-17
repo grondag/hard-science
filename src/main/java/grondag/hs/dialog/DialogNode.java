@@ -1,17 +1,19 @@
 package grondag.hs.dialog;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import com.google.common.collect.ImmutableList;
 
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+public class DialogNode<T> {
+	public final  ImmutableList<DialogOption<T>> actions;
+	public final T state;
+	public final String npcText;
 
-public abstract class DialogNode<T> {
-	public final  ObjectArrayList<DialogOption<T>> actions = new ObjectArrayList<>();
+	public DialogNode(T state, String npcText, ImmutableList<DialogOption<T>> actions) {
+		this.state = state;
+		this.npcText = npcText;
+		this.actions = actions;
+	}
 
-	public abstract Text text();
-
-	@SafeVarargs
-	public DialogNode(Identifier id, DialogOption<T>... actions) {
-		this.actions.addElements(0, actions);
+	public static <T> DialogNode<T> of(T state, String text, ImmutableList<DialogOption<T>> actions) {
+		return new DialogNode<>(state, text, actions);
 	}
 }
