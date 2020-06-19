@@ -28,6 +28,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
 
 import grondag.fermion.registrar.Registrar;
+import grondag.hs.block.HsBlocks;
 import grondag.hs.earnest.EarnestPlayerState;
 import grondag.hs.entity.Entities;
 import grondag.hs.packet.c2s.EarnestDialogC2S;
@@ -46,5 +47,7 @@ public class HardScience implements ModInitializer {
 		EntityComponents.setRespawnCopyStrategy(EarnestPlayerState.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
 
 		ServerSidePacketRegistry.INSTANCE.register(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
+
+		HsBlocks.init();
 	}
 }

@@ -6,66 +6,62 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
 
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachmentBlockEntity;
 
+import grondag.fermion.client.RenderRefreshProxy;
 import grondag.fermion.varia.NBTDictionary;
 import grondag.xm.api.modelstate.ModelState;
-import grondag.xm.api.modelstate.MutableModelState;
-import grondag.xm.api.modelstate.primitive.DynamicPrimitiveStateFunction;
+import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
 import grondag.xm.api.modelstate.primitive.PrimitiveState;
+import grondag.xm.api.modelstate.primitive.PrimitiveStateFunction;
+import grondag.xm.api.modelstate.primitive.PrimitiveStateMutator;
 
-public class HsBlockEntity extends BlockEntity implements RenderAttachmentBlockEntity, BlockEntityClientSerializable {
-	protected MutableModelState modelState;
-	protected final DynamicPrimitiveStateFunction stateFunction;
+public class HsBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
+	protected final PrimitiveState defaultModelState;
+	protected MutablePrimitiveState modelState;
+	protected final PrimitiveStateMutator stateFunction;
 
-	public HsBlockEntity(BlockEntityType<?> type, DynamicPrimitiveStateFunction stateFunction) {
+	public HsBlockEntity(BlockEntityType<?> type, PrimitiveState defaultModelState, PrimitiveStateMutator stateFunction) {
 		super(type);
+		this.defaultModelState = defaultModelState;
 		this.stateFunction = stateFunction;
 	}
 
-	@Override
-	public Object getRenderAttachmentData() {
-		return getModelState(true);
-	}
-
 	// PERF: cache world refresh
-	public ModelState getModelState(boolean refreshFromWorld) {
-		MutableModelState result = modelState;
+	public MutablePrimitiveState getModelState(boolean refreshFromWorld) {
+		MutablePrimitiveState result = modelState;
 
 		if (result == null) {
-			result = stateFunction.apply(getCachedState(), world, pos, refreshFromWorld);
+			result = defaultModelState.mutableCopy();
 			modelState = result;
-		} else if (refreshFromWorld) {
-			// PERF: reuse mutable state instance?
-			result = stateFunction.apply(getCachedState(), world, pos, refreshFromWorld);
-			modelState.release();
-			modelState = result;
+			refreshFromWorld = true;
 		}
 
-		return result;
+		if (refreshFromWorld && !result.isStatic()) {
+			stateFunction.mutate(result, getCachedState(), world, pos, null, refreshFromWorld);
+		}
+
+		return result.mutableCopy();
 	}
 
-	public PrimitiveState getDefaultPrimitiveState() {
-		return stateFunction.getDefaultState();
-	}
 
-	public void  setDefaultPrimitiveState(PrimitiveState defaultPrimitiveState) {
-		stateFunction.setDefaultState(defaultPrimitiveState.toImmutable());
-
+	public void setModelStateState(PrimitiveState newState) {
+		// PERF: can copy instead of release?
 		if (modelState != null) {
 			modelState.release();
-			modelState = null;
 		}
 
+		modelState = newState.mutableCopy();
+
+		markDirty();
 		sync();
 	}
 
 	protected void writeModelTags(CompoundTag tag) {
-		if (modelState != null && modelState.isStatic()) {
+		if (modelState != null) {
 			tag.put(TAG_MODEL_STATE, modelState.toTag());
+		} else {
+			tag.put(TAG_MODEL_STATE, defaultModelState.toTag());
 		}
-
-		tag.put(TAG_MODEL_STATE, stateFunction.getDefaultState().toTag());
 	}
 
 	@Override
@@ -88,32 +84,52 @@ public class HsBlockEntity extends BlockEntity implements RenderAttachmentBlockE
 	}
 
 	protected void readModelTags(CompoundTag tag) {
-		if (modelState != null) {
-			modelState.release();
-			modelState = null;
-		}
-
 		if (tag.contains(TAG_MODEL_STATE)) {
-			modelState = ModelState.fromTag(tag.getCompound(TAG_MODEL_STATE));
-		}
+			// PERF can copy instead of allocate?
+			if (modelState != null) {
+				modelState.release();
+			}
 
-		if (tag.contains(TAG_DEFAULT_STATE)) {
-			stateFunction.setDefaultState((PrimitiveState) ModelState.fromTag(tag.getCompound(TAG_DEFAULT_STATE)));
+			modelState = (MutablePrimitiveState) ModelState.fromTag(tag.getCompound(TAG_MODEL_STATE));
 		}
+	}
+
+	@Override
+	public CompoundTag toInitialChunkDataTag() {
+		return super.toInitialChunkDataTag(); //toTag(new CompoundTag());
 	}
 
 	@Override
 	public void fromTag(BlockState state, CompoundTag tag) {
 		super.fromTag(state, tag);
 		readModelTags(tag);
+
+		if (world != null && !world.isClient) {
+			sync();
+		}
 	}
 
 	@Override
 	public void fromClientTag(CompoundTag tag) {
 		readModelTags(tag);
+		RenderRefreshProxy.refresh(pos);
 	}
 
-	private static final String TAG_MODEL_STATE = NBTDictionary.GLOBAL.claim("hsms");
-	private static final String TAG_DEFAULT_STATE = NBTDictionary.GLOBAL.claim("hsds");
+	public static final String TAG_MODEL_STATE = NBTDictionary.GLOBAL.claim("hsms");
 
+	public static final PrimitiveStateFunction STATE_ACCESS_FUNC = (state, world, pos, refresh) -> {
+		if (state.getBlock() instanceof HsBlock) {
+			if (world != null && pos != null) {
+				final BlockEntity be = world.getBlockEntity(pos);
+
+				if (be != null) {
+					return ((HsBlockEntity) world.getBlockEntity(pos)).getModelState(refresh);
+				}
+			}
+
+			return ((HsBlock) state.getBlock()).defaultModelState.mutableCopy();
+		}
+
+		return null;
+	};
 }
