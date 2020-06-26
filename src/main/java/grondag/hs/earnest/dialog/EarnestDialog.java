@@ -19,9 +19,9 @@ public class EarnestDialog {
 	public static final DialogNode<EarnestPlayerState> EMPTY_DIALOG = new DialogNode<>(null, "", ImmutableList.of());
 
 	public static final DialogOption<EarnestPlayerState> EXIT = new DialogOption<>("dialog.hard-science.player.exit", false, s -> null);
-	public static final DialogOption<EarnestPlayerState> CHANGE_TOPIC = new DialogOption<>("dialog.hard-science.player.root", false, s -> root(s, false));
-	private static final DialogOption<EarnestPlayerState> QUESTIONS = new DialogOption<>("dialog.hard-science.player.question", false, EarnestDialog::questions);
-	private static final DialogOption<EarnestPlayerState> QUESTIONS_BACK = new DialogOption<>("dialog.hard-science.player.question.back", false, EarnestDialog::questions);
+	static final DialogOption<EarnestPlayerState> CHANGE_TOPIC = new DialogOption<>("dialog.hard-science.player.root", false, s -> root(s, false));
+	static final DialogOption<EarnestPlayerState> QUESTIONS = new DialogOption<>("dialog.hard-science.player.question", false, EarnestDialog::questions);
+	static final DialogOption<EarnestPlayerState> QUESTIONS_BACK = new DialogOption<>("dialog.hard-science.player.question.back", false, EarnestDialog::questions);
 
 	private static DialogNode<EarnestPlayerState> questions(EarnestPlayerState state) {
 		final ImmutableList<DialogOption<EarnestPlayerState>> list = ImmutableList.of(CHANGE_TOPIC, EXIT);

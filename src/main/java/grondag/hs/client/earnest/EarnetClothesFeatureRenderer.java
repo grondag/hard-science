@@ -13,8 +13,8 @@ import grondag.hs.earnest.EarnestEntity;
 
 @Environment(EnvType.CLIENT)
 public class EarnetClothesFeatureRenderer extends FeatureRenderer<EarnestEntity, EarnestEntityModel> {
-	private static Identifier ENBY = new Identifier("hard-science:textures/entity/earnest/earnest_shirt_enby.png");
-	private static Identifier TATER = new Identifier("hard-science:textures/entity/earnest/earnest_shirt_tater.png");
+	static Identifier ENBY = new Identifier("hard-science:textures/entity/earnest/earnest_shirt_enby.png");
+	static Identifier TATER = new Identifier("hard-science:textures/entity/earnest/earnest_shirt_tater.png");
 
 	public EarnetClothesFeatureRenderer(FeatureRendererContext<EarnestEntity, EarnestEntityModel> context) {
 		super(context);

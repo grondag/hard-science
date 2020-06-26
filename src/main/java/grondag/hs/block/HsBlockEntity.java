@@ -53,7 +53,10 @@ public class HsBlockEntity extends BlockEntity implements BlockEntityClientSeria
 		modelState = newState.mutableCopy();
 
 		markDirty();
-		sync();
+
+		if (!world.isClient) {
+			sync();
+		}
 	}
 
 	protected void writeModelTags(CompoundTag tag) {
@@ -104,9 +107,9 @@ public class HsBlockEntity extends BlockEntity implements BlockEntityClientSeria
 		super.fromTag(state, tag);
 		readModelTags(tag);
 
-		if (world != null && !world.isClient) {
-			sync();
-		}
+		//		if (world != null && !world.isClient) {
+		//			sync();
+		//		}
 	}
 
 	@Override

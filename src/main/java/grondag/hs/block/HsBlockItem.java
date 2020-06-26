@@ -1,10 +1,13 @@
 package grondag.hs.block;
 
-import java.util.ArrayList;
 import java.util.function.Function;
+
+import javax.annotation.Nullable;
 
 import io.netty.util.internal.ThreadLocalRandom;
 
+import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -13,13 +16,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import grondag.xm.api.modelstate.ModelState;
 import grondag.xm.api.modelstate.MutableModelState;
 import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
 import grondag.xm.api.paint.XmPaint;
-import grondag.xm.api.texture.TextureSet;
 
 
 
@@ -46,7 +49,7 @@ public class HsBlockItem extends BlockItem {
 		if (!world.isClient) {
 			final MutablePrimitiveState modelState = readModelState(itemStack);
 
-			final ArrayList<TextureSet> list = new ArrayList<>();
+			//			final ArrayList<TextureSet> list = new ArrayList<>();
 
 			//			TextureSetRegistry.instance().forEach(t -> {
 			//				if (!t.id().getNamespace().equals("minecraft") && (t.textureGroupFlags() & TextureGroup.STATIC_TILES.bitFlag) != 0) {
@@ -88,6 +91,26 @@ public class HsBlockItem extends BlockItem {
 	public void writeModelState(ItemStack stack, MutablePrimitiveState modelState) {
 		assert stack.getItem() == this;
 		stack.getOrCreateSubTag("BlockEntityTag").put(HsBlockEntity.TAG_MODEL_STATE, modelState.toTag());
+	}
+
+	@Override
+	protected boolean postPlacement(BlockPos pos, World world, @Nullable PlayerEntity player, ItemStack stack, BlockState state) {
+		if (world.isClient) {
+			final CompoundTag compoundTag = stack.getSubTag("BlockEntityTag");
+
+			if (compoundTag != null) {
+				final BlockEntity blockEntity = world.getBlockEntity(pos);
+
+				if (blockEntity != null && blockEntity instanceof HsBlockEntity) {
+					final HsBlockEntity be = (HsBlockEntity) blockEntity;
+					be.setModelStateState(readModelState(stack));
+				}
+			}
+
+			return false;
+		} else {
+			return writeTagToBlockEntity(world, player, pos, stack);
+		}
 	}
 
 	public static final Function<ItemStack, MutableModelState> HS_ITEM_MODEL_FUNCTION  = s -> {
