@@ -14,6 +14,7 @@ import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
 import grondag.xm.api.modelstate.primitive.PrimitiveState;
 import grondag.xm.api.modelstate.primitive.PrimitiveStateFunction;
 import grondag.xm.api.modelstate.primitive.PrimitiveStateMutator;
+import grondag.xm.api.paint.PaintIndex;
 
 public class HsBlockEntity extends BlockEntity implements BlockEntityClientSerializable {
 	protected final PrimitiveState defaultModelState;
@@ -93,7 +94,7 @@ public class HsBlockEntity extends BlockEntity implements BlockEntityClientSeria
 				modelState.release();
 			}
 
-			modelState = (MutablePrimitiveState) ModelState.fromTag(tag.getCompound(TAG_MODEL_STATE));
+			modelState = (MutablePrimitiveState) ModelState.fromTag(tag.getCompound(TAG_MODEL_STATE), PaintIndex.forWorld(world));
 		}
 	}
 

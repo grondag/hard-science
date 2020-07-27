@@ -1,6 +1,6 @@
 package grondag.hs.block;
 
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 
@@ -22,6 +22,7 @@ import net.minecraft.world.World;
 import grondag.xm.api.modelstate.ModelState;
 import grondag.xm.api.modelstate.MutableModelState;
 import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
+import grondag.xm.api.paint.PaintIndex;
 import grondag.xm.api.paint.XmPaint;
 
 
@@ -47,7 +48,7 @@ public class HsBlockItem extends BlockItem {
 		final ItemStack itemStack = playerEntity.getStackInHand(hand);
 
 		if (!world.isClient) {
-			final MutablePrimitiveState modelState = readModelState(itemStack);
+			final MutablePrimitiveState modelState = readModelState(itemStack, world);
 
 			//			final ArrayList<TextureSet> list = new ArrayList<>();
 
@@ -76,13 +77,13 @@ public class HsBlockItem extends BlockItem {
 		return TypedActionResult.success(itemStack);
 	}
 
-	public MutablePrimitiveState readModelState(ItemStack stack) {
+	public MutablePrimitiveState readModelState(ItemStack stack, World world) {
 		assert stack.getItem() == this;
 
 		final CompoundTag tag = stack.getOrCreateSubTag("BlockEntityTag");
 
 		if (tag.contains(HsBlockEntity.TAG_MODEL_STATE)) {
-			return (MutablePrimitiveState) ModelState.fromTag(tag.getCompound(HsBlockEntity.TAG_MODEL_STATE));
+			return (MutablePrimitiveState) ModelState.fromTag(tag.getCompound(HsBlockEntity.TAG_MODEL_STATE), PaintIndex.forWorld(world));
 		} else {
 			return ((HsBlock) getBlock()).defaultModelState.mutableCopy();
 		}
@@ -103,7 +104,7 @@ public class HsBlockItem extends BlockItem {
 
 				if (blockEntity != null && blockEntity instanceof HsBlockEntity) {
 					final HsBlockEntity be = (HsBlockEntity) blockEntity;
-					be.setModelStateState(readModelState(stack));
+					be.setModelStateState(readModelState(stack, world));
 				}
 			}
 
@@ -113,9 +114,9 @@ public class HsBlockItem extends BlockItem {
 		}
 	}
 
-	public static final Function<ItemStack, MutableModelState> HS_ITEM_MODEL_FUNCTION  = s -> {
+	public static final BiFunction<ItemStack, World, MutableModelState> HS_ITEM_MODEL_FUNCTION  = (s, w) -> {
 		if (s.getItem() instanceof HsBlockItem) {
-			return ((HsBlockItem) s.getItem()).readModelState(s);
+			return ((HsBlockItem) s.getItem()).readModelState(s, w);
 		}
 
 		return null;
