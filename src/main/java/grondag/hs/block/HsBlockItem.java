@@ -4,10 +4,9 @@ import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 
-import io.netty.util.internal.ThreadLocalRandom;
-
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -19,11 +18,11 @@ import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import grondag.hs.client.gui.PaintScreen;
 import grondag.xm.api.modelstate.ModelState;
 import grondag.xm.api.modelstate.MutableModelState;
 import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
 import grondag.xm.api.paint.PaintIndex;
-import grondag.xm.api.paint.XmPaint;
 
 
 
@@ -47,32 +46,36 @@ public class HsBlockItem extends BlockItem {
 	public TypedActionResult<ItemStack> use(World world, PlayerEntity playerEntity, Hand hand) {
 		final ItemStack itemStack = playerEntity.getStackInHand(hand);
 
-		if (!world.isClient) {
-			final MutablePrimitiveState modelState = readModelState(itemStack, world);
-
-			//			final ArrayList<TextureSet> list = new ArrayList<>();
-
-			//			TextureSetRegistry.instance().forEach(t -> {
-			//				if (!t.id().getNamespace().equals("minecraft") && (t.textureGroupFlags() & TextureGroup.STATIC_TILES.bitFlag) != 0) {
-			//					list.add(t);
-			//				}
-			//			});
-
-			if (!modelState.isStatic()) {
-				final XmPaint newPaint = XmPaint.finder()
-						.copy(modelState.paint(0))
-						//						.texture(0, list.get(ThreadLocalRandom.current().nextInt(list.size())))
-						.textureColor(0, 0xFF000000 | ThreadLocalRandom.current().nextInt(0xFFFFFF)).find();
-
-				modelState.paintAll(newPaint);
-
-				writeModelState(itemStack, modelState);
-
-				playerEntity.setStackInHand(hand, itemStack);
-			}
-
-			modelState.release();
+		if (world.isClient) {
+			MinecraftClient.getInstance().openScreen(new PaintScreen());
 		}
+
+		//		if (!world.isClient) {
+		//			final MutablePrimitiveState modelState = readModelState(itemStack, world);
+		//
+		//			//			final ArrayList<TextureSet> list = new ArrayList<>();
+		//
+		//			//			TextureSetRegistry.instance().forEach(t -> {
+		//			//				if (!t.id().getNamespace().equals("minecraft") && (t.textureGroupFlags() & TextureGroup.STATIC_TILES.bitFlag) != 0) {
+		//			//					list.add(t);
+		//			//				}
+		//			//			});
+		//
+		//			if (!modelState.isStatic()) {
+		//				final XmPaint newPaint = XmPaint.finder()
+		//						.copy(modelState.paint(0))
+		//						//						.texture(0, list.get(ThreadLocalRandom.current().nextInt(list.size())))
+		//						.textureColor(0, 0xFF000000 | ThreadLocalRandom.current().nextInt(0xFFFFFF)).find();
+		//
+		//				modelState.paintAll(newPaint);
+		//
+		//				writeModelState(itemStack, modelState);
+		//
+		//				playerEntity.setStackInHand(hand, itemStack);
+		//			}
+		//
+		//			modelState.release();
+		//		}
 
 		return TypedActionResult.success(itemStack);
 	}
