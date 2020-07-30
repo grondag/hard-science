@@ -15,6 +15,10 @@
  ******************************************************************************/
 package grondag.hs.client.gui;
 
+import static grondag.hs.client.gui.ColorUtil.NO_COLOR;
+import static grondag.hs.client.gui.ColorUtil.hclToRgb;
+import static grondag.hs.client.gui.ColorUtil.rbgLinearToSrgb;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
@@ -37,33 +41,25 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	/**
 	 * Hue chosen by user, or set at init - will match currrent rbg
 	 */
-	private int hue = DEFAULT_HCL & 0xFF;
+	private int hue = DEFAULT_HCL & 0xFFFF;
 
 	/**
 	 * Chroma last chosen by user, may not match current rgb
 	 */
-	private int chroma =  (DEFAULT_HCL >> 8) & 0xFF;
+	private int chroma =  (DEFAULT_HCL >> 16) & 0xFF;
 
 	private int effectiveChroma = chroma;
 
 	/**
 	 * Luminance last chosen by user, will match current rgb
 	 */
-	private int luminance = (DEFAULT_HCL >> 16) & 0xFF;
+	private int luminance = (DEFAULT_HCL >> 24) & 0xFF;
 
 	private int rgb = DEFAULT_RGB;
 
-	private float centerX;
-	private float centerY;
-	private float radiusInner;
-	private float radiusOuter;
-	private float radiusSqInnerClick;
-	private float radiusSqOuterClick;
-	private float halfGrid;
-
 	private IntConsumer onRgbChange = i -> {};
 
-	private final int[][] mix = new int[SLICE_COUNT][SLICE_COUNT];
+	private final int[][] mix = new int[LUMA_SLICE_COUNT][CHROMA_SLICE_COUNT];
 
 	public int getRgb() {
 		return rgb;
@@ -72,11 +68,11 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	public void setRgb(int rgb) {
 		this.rgb = rgb;
 		final int hcl = RGB_TO_HCL.get(rgb);
-		luminance = (hcl >> 16) & 0xFF;
-		chroma = (hcl >> 8) & 0xFF;
+
+		luminance = (hcl >> 24) & 0xFF;
+		chroma = (hcl >> 16) & 0xFF;
 		effectiveChroma = chroma;
-		changeHueIfDifferent(hcl & 0xFF);
-		onRgbChange.accept(rgb);
+		changeHueIfDifferent(hcl & 0xFFFF);
 	}
 
 	public void onChange(IntConsumer onRgbChange) {
@@ -102,55 +98,33 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 
 		vertexbuffer.begin(GL21.GL_QUADS, VertexFormats.POSITION_COLOR);
 
-		float arcStart = 0;
-		float arcEnd;
-
-		float nx = (float) Math.sin(arcStart);
-		float ny = (float) Math.cos(arcStart);
-
-		float x0 = centerX + nx * radiusInner;
-		float y0 = centerY + ny * radiusInner;
-		float x1 = centerX + nx * radiusOuter;
-		float y1 = centerY + ny * radiusOuter;
-
-		float x2, y2, x3, y3;
+		final float xStep = width * ARC_DEGREES / 360F;
+		float x0 = left;
+		float x1 = x0 + xStep;
+		final float y0 = top + 10;
+		final float y1 = top;
 
 		int hIndex = 0;
 		int c0 = HUE_COLORS[hIndex];
 		int c1;
 
-
-		for (int h = 0; h <= 360; h += ARC_DEGREES) {
-			arcEnd = (h + ARC_DEGREES) * DEGREES_TO_RADIANS;
-			nx = (float) Math.sin(arcStart);
-			ny = (float) Math.cos(arcStart);
-
-			x2 = centerX + nx * radiusOuter;
-			y2 = centerY + ny * radiusOuter;
-			x3 = centerX + nx * radiusInner;
-			y3 = centerY + ny * radiusInner;
-
+		for (int h = 0; h < 360; h += ARC_DEGREES) {
 			c1 = HUE_COLORS[++hIndex];
-
 			vertexbuffer.vertex(x0, y0, 0.0D).color((c0 >> 16) & 0xFF, (c0 >> 8) & 0xFF, c0 & 0xFF, 0xFF).next();
-			vertexbuffer.vertex(x1, y1, 0.0D).color((c0 >> 16) & 0xFF, (c0 >> 8) & 0xFF, c0 & 0xFF, 0xFF).next();
-			vertexbuffer.vertex(x2, y2, 0.0D).color((c1 >> 16) & 0xFF, (c1 >> 8) & 0xFF, c1 & 0xFF, 0xFF).next();
-			vertexbuffer.vertex(x3, y3, 0.0D).color((c1 >> 16) & 0xFF, (c1 >> 8) & 0xFF, c1 & 0xFF, 0xFF).next();
+			vertexbuffer.vertex(x1, y0, 0.0D).color((c1 >> 16) & 0xFF, (c1 >> 8) & 0xFF, c1 & 0xFF, 0xFF).next();
+			vertexbuffer.vertex(x1, y1, 0.0D).color((c1 >> 16) & 0xFF, (c1 >> 8) & 0xFF, c1 & 0xFF, 0xFF).next();
+			vertexbuffer.vertex(x0, y1, 0.0D).color((c0 >> 16) & 0xFF, (c0 >> 8) & 0xFF, c0 & 0xFF, 0xFF).next();
 
-			arcStart = arcEnd;
-			x0 = x3;
-			y0 = y3;
-			x1 = x2;
-			y1 = y2;
+			x0 = x1;
+			x1 += xStep;
 			c0 = c1;
 		}
 
-		final float gLeft = centerX - halfGrid;
-		final float gTop = centerY + halfGrid;
-		final float gSpan = halfGrid * 2 / SLICE_COUNT;
+		final float lSpan = (height - 14) / LUMA_SLICE_COUNT;
+		final float cSpan = height * 2 / CHROMA_SLICE_COUNT;
 
-		for (int lum = SLICE_COUNT - 1; lum >= 0; --lum) {
-			for (int chr = 0; chr <  SLICE_COUNT; ++chr) {
+		for (int lum = LUMA_SLICE_COUNT - 1; lum >= 0; --lum) {
+			for (int chr = 0; chr <  CHROMA_SLICE_COUNT; ++chr) {
 
 				final int c = mix[lum][chr];
 
@@ -162,11 +136,11 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 				final int g = (c >> 8) & 0xFF;
 				final int b = c & 0xFF;
 
-				final float cx0 = gLeft + gSpan * chr;
-				final float cx1 = cx0 + gSpan;
+				final float cx0 = left + cSpan * chr;
+				final float cx1 = cx0 + cSpan;
 
-				final float ly0 = gTop - gSpan * lum;
-				final float ly1 = ly0 - gSpan;
+				final float ly0 = bottom - lSpan * lum;
+				final float ly1 = ly0 - lSpan;
 
 				vertexbuffer.vertex(cx0, ly0, 0.0D).color(r, g, b, 0xFF).next();
 				vertexbuffer.vertex(cx1, ly0, 0.0D).color(r, g, b, 0xFF).next();
@@ -177,8 +151,8 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 		}
 
 		// highlight current color
-		final int hc = effectiveChroma / SLICE_SIZE;
-		final int hl = luminance / SLICE_SIZE;
+		final int hc = effectiveChroma / CHROMA_SLICE_SIZE;
+		final int hl = luminance / LUMA_SLICE_SIZE;
 		final int hrgb = mix[hl][hc];
 
 		if (hrgb != NO_COLOR) {
@@ -186,26 +160,31 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			final int g = (hrgb >> 8) & 0xFF;
 			final int b = hrgb & 0xFF;
 
-			float cx0 = gLeft + gSpan * hc - 0.5f;
-			float cx1 = cx0 + gSpan + 1;
+			final float cx = left + cSpan * hc + cSpan * 0.5f;
+			final float ly = bottom - lSpan * hl - cSpan * 0.5f;
 
-			float ly0 = gTop - gSpan * hl + 0.5f;
-			float ly1 = ly0 - gSpan - 1;
+			float cx0 = cx - 4.0f;
+			float cx1 = cx + 4.0f;
 
-			vertexbuffer.vertex(cx0, ly0, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
-			vertexbuffer.vertex(cx1, ly0, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
-			vertexbuffer.vertex(cx1, ly1, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
-			vertexbuffer.vertex(cx0, ly1, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
+			float ly0 = ly - 4.0f;
+			float ly1 = ly + 4.0f;
+
+			final int c = luminance > 50 ? 0 : 0xFF;
+
+			vertexbuffer.vertex(cx0, ly1, 0.0D).color(c, c, c, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly1, 0.0D).color(c, c, c, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly0, 0.0D).color(c, c, c, 0xFF).next();
+			vertexbuffer.vertex(cx0, ly0, 0.0D).color(c, c, c, 0xFF).next();
 
 			cx0 += 0.5f;
 			cx1 -= 0.5f;
-			ly0 -= 0.5f;
-			ly1 += 0.5f;
+			ly0 += 0.5f;
+			ly1 -= 0.5f;
 
-			vertexbuffer.vertex(cx0, ly0, 0.0D).color(r, g, b, 0xFF).next();
-			vertexbuffer.vertex(cx1, ly0, 0.0D).color(r, g, b, 0xFF).next();
-			vertexbuffer.vertex(cx1, ly1, 0.0D).color(r, g, b, 0xFF).next();
 			vertexbuffer.vertex(cx0, ly1, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly1, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly0, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx0, ly0, 0.0D).color(r, g, b, 0xFF).next();
 		}
 
 		tessellator.draw();
@@ -216,94 +195,72 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 		RenderSystem.enableTexture();
 	}
 
-	private void changeHueIfDifferent(int newHue) {
+	private boolean changeHueIfDifferent(int newHue) {
 		if (newHue != hue) {
 			hue = newHue;
 			rebuildMix();
 
 			int c = chroma;
 
-			int rgb = HCL_TO_RGB.getOrDefault(hue | (c << 8) | (luminance << 16), NO_COLOR);
+			int rgb = HCL_TO_RGB.getOrDefault(hue | (c << 16) | (luminance << 24), NO_COLOR);
 
 			// reduce effective chroma until we have a visible color
 			while (c > 0 && rgb  == NO_COLOR) {
-				c -= SLICE_SIZE;
-				rgb = HCL_TO_RGB.getOrDefault(hue | (c << 8) | (luminance << 16), NO_COLOR);
+				c -= CHROMA_SLICE_SIZE;
+				rgb = HCL_TO_RGB.getOrDefault(hue | (c << 16) | (luminance << 24), NO_COLOR);
 
 			}
 
 			effectiveChroma = c;
 			this.rgb = rgb;
-			onRgbChange.accept(rgb);
+
+			return true;
+		} else {
+			return false;
 		}
 	}
 
 	private void rebuildMix() {
-		for (int lum = 0; lum < SLICE_COUNT; ++lum) {
-			final int hl = hue | ((lum * SLICE_SIZE) << 16);
+		for (int lum = 0; lum < LUMA_SLICE_COUNT; ++lum) {
+			final int hl = hue | ((lum * LUMA_SLICE_SIZE) << 24);
 
-			for (int chr = 0; chr < SLICE_COUNT; ++chr) {
-				mix[lum][chr] = rbgLinearToSrgb(HCL_TO_RGB.get(hl | ((chr * SLICE_SIZE) << 8)));
+			for (int chr = 0; chr < CHROMA_SLICE_COUNT; ++chr) {
+				mix[lum][chr] = rbgLinearToSrgb(HCL_TO_RGB.get(hl | ((chr * CHROMA_SLICE_SIZE) << 16)));
 			}
 		}
 	}
 
 	@Override
 	public void handleMouseClick(double mouseX, double mouseY, int clickedMouseButton) {
-		final float dx = (float) (mouseX - centerX);
-		final float dy = (float) (mouseY - centerY);
+		if (mouseY >= top && mouseY <= top + 11) {
+			final int angle = (int) Math.round(360F * (mouseX - left) / width);
 
-		final float distanceSq = dx * dx +  dy * dy;
-
-		if (distanceSq < radiusSqOuterClick) {
-			if (distanceSq > radiusSqInnerClick) {
-				int angle = (int) Math.round(Math.toDegrees(Math.atan2(mouseX - centerX, mouseY - centerY)));
-
-				while (angle < 0) {
-					angle += 360;
+			if (angle >= 0 && angle <= 360) {
+				if (changeHueIfDifferent(angle)) {
+					onRgbChange.accept(rgb);
 				}
+			}
+		}else {
+			final float lSpan = (height - 14) / LUMA_SLICE_COUNT;
+			final float cSpan = height * 2 / CHROMA_SLICE_COUNT;
 
-				angle %= 360;
+			final int c = (int) Math.round((mouseX - left) / cSpan);
+			final int l = (int) Math.round((mouseY - bottom) / -lSpan);
 
-				changeHueIfDifferent(angle);
-			} else {
-				final float gLeft = centerX - halfGrid;
-				final float gBottom = centerY + halfGrid;
+			if (c < CHROMA_SLICE_COUNT && l < LUMA_SLICE_COUNT && c >= 0 && l >= 0) {
+				final int hcl = hue  | ((c * CHROMA_SLICE_SIZE) << 16) | ((l * LUMA_SLICE_SIZE) << 24);
 
-				if  (mouseX >= gLeft  && mouseY <= gBottom) {
-					final float gSpan = halfGrid * 2 / SLICE_COUNT;
-					final int x = (int) Math.round((mouseX - gLeft) / gSpan);
-					final int y = (int) Math.round((mouseY - gBottom) / -gSpan);
+				final int rgb = HCL_TO_RGB.getOrDefault(hcl, NO_COLOR);
 
-					if (x < SLICE_COUNT && y < SLICE_COUNT && x >= 0 && y >= 0) {
-						final int hcl = hue  | ((x * SLICE_SIZE) << 8) | ((y * SLICE_SIZE) << 16);
-
-						final int rgb = HCL_TO_RGB.getOrDefault(hcl, NO_COLOR);
-
-						if (rgb != NO_COLOR) {
-							this.rgb = rgb;
-							onRgbChange.accept(rgb);
-							luminance = (hcl >> 16) & 0xFF;
-							chroma = (hcl >> 8) & 0xFF;
-							effectiveChroma = chroma;
-						}
-					}
+				if (rgb != NO_COLOR) {
+					this.rgb = rgb;
+					onRgbChange.accept(rgb);
+					luminance = (hcl >> 24) & 0xFF;
+					chroma = (hcl >> 16) & 0xFF;
+					effectiveChroma = chroma;
 				}
 			}
 		}
-	}
-
-	public static int rbgLinearToSrgb(int linearRgb) {
-		final int a = linearRgb & 0xFF000000;
-		double r = ((linearRgb >> 16) & 0xFF) / 255.0;
-		double g = ((linearRgb >> 8) & 0xFF) / 255.0;
-		double b = (linearRgb & 0xFF) / 255.0;
-
-		r = r <= 0.0031308 ? 12.92 * r : Math.pow(1.055 * r, 1/2.4) - 0.055;
-		g = g <= 0.0031308 ? 12.92 * g : Math.pow(1.055 * g, 1/2.4) - 0.055;
-		b = b <= 0.0031308 ? 12.92 * b : Math.pow(1.055 * b, 1/2.4) - 0.055;
-
-		return  a  | ((int) Math.round(r * 255) << 16) | ((int) Math.round(g * 255) << 8) | (int) Math.round(b * 255);
 	}
 
 	@Override
@@ -323,98 +280,38 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 				newHue -= 360;
 			}
 
-			changeHueIfDifferent(newHue);
+			if (changeHueIfDifferent(newHue)) {
+				onRgbChange.accept(rgb);
+			}
 		}
 	}
 
 	@Override
 	protected void handleCoordinateUpdate() {
-		radiusOuter = Math.min(height, width) / 2f;
-		centerX = left + radiusOuter;
-		centerY = top + radiusOuter;
-		radiusInner = radiusOuter * 0.88f;
-		radiusSqInnerClick = radiusInner * radiusInner * (0.95f * 0.95f);
-		radiusSqOuterClick = radiusOuter * radiusOuter * (1.1f * 1.1f);
-		halfGrid = 0.66f * radiusInner;
+
 	}
 
 	@Override
 	public void drawToolTip(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-		// TODO Auto-generated method stub
+		// NOOP
 
-	}
-
-	private static final double K = 903.3;
-	private static final double E = 0.008856;
-
-	//NB: using standard illuminant E and outputting linear RGB - color correction to be applied in rendering
-	private static final double ILLUMINANT = 100.0;
-
-	private static final int NO_COLOR = 0;
-
-	public static int labToRgb(double l, double a, double b) {
-		final double y0 = (l + 16) / 116;
-		final double z0 = y0 - b / 200;
-		final double x0 = a / 500 + y0;
-
-		final double x3 = x0 * x0 * x0;
-		final double x1 = x3 > E ? x3 : (116 * x0 - 16) / K;
-
-		final double y1 = l > K * E ? y0 * y0 * y0 : l / K;
-
-		final double z3 = z0 * z0 * z0;
-
-		final double z1 = z3 > E ? z3 : (116 * z0 - 16) / K;
-
-		return xyzToRgb(x1 * ILLUMINANT, y1 * ILLUMINANT, z1 * ILLUMINANT);
-	}
-
-	public static int hclToRgb(double hue, double chroma, double luminance) {
-		return labToRgb(luminance, Math.cos(Math.toRadians(hue)) * chroma, Math.sin(Math.toRadians(hue)) * chroma);
-	}
-
-	/**
-	 * If color is visible, alpha btye = 255
-	 */
-	protected static int xyzToRgb(double x, double y, double z) {
-		if (!(x >= 0 && x <= ILLUMINANT && y >= 0 && y <= ILLUMINANT && z >= 0 && z <= ILLUMINANT)) {
-			return NO_COLOR;
-		} else {
-			// Convert to sRGB
-			final double x0 = x / 100;
-			final double y0 = y / 100;
-			final double z0 = z / 100;
-
-			// CIE RGB inverse matrix, per http://www.brucelindbloom.com
-			final double r0 = x0 *  2.3706743 + y0 * -0.9000405 + z0 * -0.4706338;
-			final double g0 = x0 * -0.5138850 + y0 *  1.4253036 + z0 *  0.0885814;
-			final double b0 = x0 *  0.0052982 + y0 * -0.0146949 + z0 *  1.0093968;
-
-			final int red = (int) Math.round(r0 * 255);
-			final int green = (int) Math.round(g0 * 255);
-			final int blue = (int) Math.round(b0 * 255);
-
-			if ((red & 0xFF) == red && (green & 0xFF) == green && (blue & 0xFF) == blue) {
-				return 0xFF000000 | (red << 16) | (green << 8) | blue;
-			} else {
-				return NO_COLOR;
-			}
-		}
 	}
 
 	private static final Int2IntOpenHashMap RGB_TO_HCL = new Int2IntOpenHashMap();
 	private static final Int2IntOpenHashMap HCL_TO_RGB = new Int2IntOpenHashMap();
 
-	private static final int SLICE_SIZE = 4;
-	private static final int SLICE_COUNT = 26;
+	private static final int CHROMA_SLICE_SIZE = 2;
+	private static final int CHROMA_SLICE_COUNT = 51;
 
-	private static final float DEGREES_TO_RADIANS = (float) (Math.PI / 180F);
+	private static final int LUMA_SLICE_SIZE = 4;
+	private static final int LUMA_SLICE_COUNT = 26;
+
 	private static final int ARC_DEGREES = 5;
 
 	private static final int[] HUE_COLORS = new int[360 / ARC_DEGREES + 2];
 
 	private static final int DEFAULT_RGB;
-	private static final int DEFAULT_HCL = 100 << 16;
+	private static final int DEFAULT_HCL = 100 << 24;
 
 	static {
 		for (int hIndex = 0; hIndex < HUE_COLORS.length; ++hIndex) {
@@ -422,15 +319,15 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 		}
 
 		for (int h = 0; h < 360; ++h) {
-			for (int lum = 0; lum < SLICE_COUNT; ++lum) {
-				for (int chr = 0; chr < SLICE_COUNT; ++chr) {
-					final int c = chr * SLICE_SIZE;
-					final int l = lum * SLICE_SIZE;
+			for (int lum = 0; lum < LUMA_SLICE_COUNT; ++lum) {
+				for (int chr = 0; chr < CHROMA_SLICE_COUNT; ++chr) {
+					final int c = chr * CHROMA_SLICE_SIZE;
+					final int l = lum * LUMA_SLICE_SIZE;
 
 					final int rgb = hclToRgb(h, c, l);
 
 					if (rgb != NO_COLOR) {
-						final int hcl = h | (c << 8) | (l << 16);
+						final int hcl = h | (c << 16) | (l << 24);
 
 						RGB_TO_HCL.put(rgb, hcl);
 						HCL_TO_RGB.put(hcl, rgb);

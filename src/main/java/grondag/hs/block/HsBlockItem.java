@@ -47,7 +47,7 @@ public class HsBlockItem extends BlockItem {
 		final ItemStack itemStack = playerEntity.getStackInHand(hand);
 
 		if (world.isClient) {
-			MinecraftClient.getInstance().openScreen(new PaintScreen());
+			MinecraftClient.getInstance().openScreen(new PaintScreen(itemStack));
 		}
 
 		//		if (!world.isClient) {
