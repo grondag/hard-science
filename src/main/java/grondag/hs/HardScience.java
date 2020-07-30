@@ -32,6 +32,8 @@ import grondag.hs.block.HsBlocks;
 import grondag.hs.earnest.EarnestPlayerState;
 import grondag.hs.entity.Entities;
 import grondag.hs.packet.c2s.EarnestDialogC2S;
+import grondag.xm.api.texture.XmTextures;
+import grondag.xm.api.texture.core.CoreTextures;
 
 public class HardScience implements ModInitializer {
 	public static final Logger LOG = LogManager.getLogger("Hard Science");
@@ -49,5 +51,31 @@ public class HardScience implements ModInitializer {
 		ServerSidePacketRegistry.INSTANCE.register(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
 
 		HsBlocks.init();
+
+		XmTextures.TILE_NOISE_STRONG.use();
+		XmTextures.TILE_NOISE_MODERATE.use();
+		XmTextures.TILE_NOISE_LIGHT.use();
+		XmTextures.TILE_NOISE_SUBTLE.use();
+		XmTextures.TILE_NOISE_EXTREME.use();
+
+		XmTextures.WHITE.use();
+		XmTextures.BORDER_SINGLE_LINE.use();
+		XmTextures.TILE_NOISE_BLUE_A.use();
+		XmTextures.TILE_NOISE_BLUE_B.use();
+		XmTextures.TILE_NOISE_BLUE.use();
+		XmTextures.TILE_NOISE_EXTREME.use();
+
+		CoreTextures.TILE_COBBLE.use();
+		CoreTextures.BORDER_COBBLE.use();
+		CoreTextures.BORDER_SMOOTH_BLEND.use();
+		CoreTextures.BORDER_WEATHERED_BLEND.use();
+		CoreTextures.BORDER_BEVEL.use();
+		CoreTextures.BORDER_WEATHERED_LINE.use();
+		CoreTextures.BIGTEX_SANDSTONE.use();
+		CoreTextures.BIGTEX_RAMMED_EARTH.use();
+		CoreTextures.BIGTEX_COBBLE_SQUARES.use();
+		CoreTextures.BIGTEX_GRANITE.use();
+		CoreTextures.BIGTEX_SNOW.use();
+
 	}
 }

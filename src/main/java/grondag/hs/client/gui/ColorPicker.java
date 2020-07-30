@@ -17,6 +17,7 @@ package grondag.hs.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntConsumer;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.render.BufferBuilder;
@@ -33,8 +34,23 @@ import grondag.fermion.gui.control.AbstractControl;
 
 @Environment(EnvType.CLIENT)
 public class ColorPicker extends AbstractControl<ColorPicker> {
+	/**
+	 * Hue chosen by user, or set at init - will match currrent rbg
+	 */
 	private int hue = DEFAULT_HCL & 0xFF;
-	private int hcl = DEFAULT_HCL;
+
+	/**
+	 * Chroma last chosen by user, may not match current rgb
+	 */
+	private int chroma =  (DEFAULT_HCL >> 8) & 0xFF;
+
+	private int effectiveChroma = chroma;
+
+	/**
+	 * Luminance last chosen by user, will match current rgb
+	 */
+	private int luminance = (DEFAULT_HCL >> 16) & 0xFF;
+
 	private int rgb = DEFAULT_RGB;
 
 	private float centerX;
@@ -45,6 +61,8 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	private float radiusSqOuterClick;
 	private float halfGrid;
 
+	private IntConsumer onRgbChange = i -> {};
+
 	private final int[][] mix = new int[SLICE_COUNT][SLICE_COUNT];
 
 	public int getRgb() {
@@ -53,17 +71,22 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 
 	public void setRgb(int rgb) {
 		this.rgb = rgb;
-		hcl = RGB_TO_HCL.get(rgb);
+		final int hcl = RGB_TO_HCL.get(rgb);
+		luminance = (hcl >> 16) & 0xFF;
+		chroma = (hcl >> 8) & 0xFF;
+		effectiveChroma = chroma;
 		changeHueIfDifferent(hcl & 0xFF);
+		onRgbChange.accept(rgb);
+	}
+
+	public void onChange(IntConsumer onRgbChange) {
+		this.onRgbChange = onRgbChange;
 	}
 
 	public ColorPicker(ScreenRenderContext renderContext) {
 		super(renderContext);
 		setAspectRatio(1.0f);
 		rebuildMix();
-
-		// TODO: remove
-		hclToRgb(0, 0, 100);
 	}
 
 	@Override
@@ -131,7 +154,6 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 
 				final int c = mix[lum][chr];
 
-
 				if (c == NO_COLOR) {
 					continue;
 				}
@@ -150,7 +172,40 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 				vertexbuffer.vertex(cx1, ly0, 0.0D).color(r, g, b, 0xFF).next();
 				vertexbuffer.vertex(cx1, ly1, 0.0D).color(r, g, b, 0xFF).next();
 				vertexbuffer.vertex(cx0, ly1, 0.0D).color(r, g, b, 0xFF).next();
+
 			}
+		}
+
+		// highlight current color
+		final int hc = effectiveChroma / SLICE_SIZE;
+		final int hl = luminance / SLICE_SIZE;
+		final int hrgb = mix[hl][hc];
+
+		if (hrgb != NO_COLOR) {
+			final int r = (hrgb >> 16) & 0xFF;
+			final int g = (hrgb >> 8) & 0xFF;
+			final int b = hrgb & 0xFF;
+
+			float cx0 = gLeft + gSpan * hc - 0.5f;
+			float cx1 = cx0 + gSpan + 1;
+
+			float ly0 = gTop - gSpan * hl + 0.5f;
+			float ly1 = ly0 - gSpan - 1;
+
+			vertexbuffer.vertex(cx0, ly0, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly0, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly1, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
+			vertexbuffer.vertex(cx0, ly1, 0.0D).color(0xFF, 0xFF, 0xFF, 0xFF).next();
+
+			cx0 += 0.5f;
+			cx1 -= 0.5f;
+			ly0 -= 0.5f;
+			ly1 += 0.5f;
+
+			vertexbuffer.vertex(cx0, ly0, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly0, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx1, ly1, 0.0D).color(r, g, b, 0xFF).next();
+			vertexbuffer.vertex(cx0, ly1, 0.0D).color(r, g, b, 0xFF).next();
 		}
 
 		tessellator.draw();
@@ -165,6 +220,21 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 		if (newHue != hue) {
 			hue = newHue;
 			rebuildMix();
+
+			int c = chroma;
+
+			int rgb = HCL_TO_RGB.getOrDefault(hue | (c << 8) | (luminance << 16), NO_COLOR);
+
+			// reduce effective chroma until we have a visible color
+			while (c > 0 && rgb  == NO_COLOR) {
+				c -= SLICE_SIZE;
+				rgb = HCL_TO_RGB.getOrDefault(hue | (c << 8) | (luminance << 16), NO_COLOR);
+
+			}
+
+			effectiveChroma = c;
+			this.rgb = rgb;
+			onRgbChange.accept(rgb);
 		}
 	}
 
@@ -173,7 +243,7 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			final int hl = hue | ((lum * SLICE_SIZE) << 16);
 
 			for (int chr = 0; chr < SLICE_COUNT; ++chr) {
-				mix[lum][chr] = HCL_TO_RGB.get(hl | ((chr * SLICE_SIZE) << 8));
+				mix[lum][chr] = rbgLinearToSrgb(HCL_TO_RGB.get(hl | ((chr * SLICE_SIZE) << 8)));
 			}
 		}
 	}
@@ -189,46 +259,51 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			if (distanceSq > radiusSqInnerClick) {
 				int angle = (int) Math.round(Math.toDegrees(Math.atan2(mouseX - centerX, mouseY - centerY)));
 
-				if (angle < 0) {
+				while (angle < 0) {
 					angle += 360;
 				}
+
+				angle %= 360;
 
 				changeHueIfDifferent(angle);
 			} else {
 				final float gLeft = centerX - halfGrid;
-				final float gBottom = centerY - halfGrid;
+				final float gBottom = centerY + halfGrid;
 
-				if  (mouseX >= gLeft  && mouseY >= gBottom) {
+				if  (mouseX >= gLeft  && mouseY <= gBottom) {
 					final float gSpan = halfGrid * 2 / SLICE_COUNT;
 					final int x = (int) Math.round((mouseX - gLeft) / gSpan);
-					final int y = (int) Math.round((mouseY - gBottom) / gSpan);
+					final int y = (int) Math.round((mouseY - gBottom) / -gSpan);
 
-					if (x < SLICE_COUNT && y < SLICE_COUNT) {
+					if (x < SLICE_COUNT && y < SLICE_COUNT && x >= 0 && y >= 0) {
 						final int hcl = hue  | ((x * SLICE_SIZE) << 8) | ((y * SLICE_SIZE) << 16);
 
 						final int rgb = HCL_TO_RGB.getOrDefault(hcl, NO_COLOR);
 
 						if (rgb != NO_COLOR) {
 							this.rgb = rgb;
-							this.hcl = hcl;
+							onRgbChange.accept(rgb);
+							luminance = (hcl >> 16) & 0xFF;
+							chroma = (hcl >> 8) & 0xFF;
+							effectiveChroma = chroma;
 						}
 					}
 				}
 			}
+		}
+	}
 
-		}// else if (mouseX >= gridLeft) {
-		//			final int l = (int) Math.floor((mouseY - gridTop) / gridIncrementY);
-		//			final int c = (int) Math.floor((mouseX - gridLeft) / gridIncrementX);
-		//
-		//			if (l >= 0 && l < Luminance.COUNT && c >= 0 && c < Chroma.COUNT) {
-		//				final ColorSet testMap = ColorAtlas.INSTANCE.getColorMap(selectedHue, Chroma.VALUES[c], Luminance.VALUES[l]);
-		//
-		//				if (testMap != null) {
-		//					colorMapID = testMap.ordinal;
-		//					selectedChroma = testMap.chroma;
-		//				}
-		//			}
-		//		}
+	public static int rbgLinearToSrgb(int linearRgb) {
+		final int a = linearRgb & 0xFF000000;
+		double r = ((linearRgb >> 16) & 0xFF) / 255.0;
+		double g = ((linearRgb >> 8) & 0xFF) / 255.0;
+		double b = (linearRgb & 0xFF) / 255.0;
+
+		r = r <= 0.0031308 ? 12.92 * r : Math.pow(1.055 * r, 1/2.4) - 0.055;
+		g = g <= 0.0031308 ? 12.92 * g : Math.pow(1.055 * g, 1/2.4) - 0.055;
+		b = b <= 0.0031308 ? 12.92 * b : Math.pow(1.055 * b, 1/2.4) - 0.055;
+
+		return  a  | ((int) Math.round(r * 255) << 16) | ((int) Math.round(g * 255) << 8) | (int) Math.round(b * 255);
 	}
 
 	@Override
@@ -272,7 +347,7 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	private static final double K = 903.3;
 	private static final double E = 0.008856;
 
-	//NB: using standard illuminant E - gamma and tone mapping to be applied in rendering
+	//NB: using standard illuminant E and outputting linear RGB - color correction to be applied in rendering
 	private static final double ILLUMINANT = 100.0;
 
 	private static final int NO_COLOR = 0;
@@ -310,19 +385,16 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			final double y0 = y / 100;
 			final double z0 = z / 100;
 
-			final double r0 = x0 * 3.2406 + y0 * -1.5372 + z0 * -0.4986;
-			final double g0 = x0 * -0.9689 + y0 * 1.8758 + z0 * 0.0415;
-			final double b0 = x0 * 0.0557 + y0 * -0.2040 + z0 * 1.0570;
+			// CIE RGB inverse matrix, per http://www.brucelindbloom.com
+			final double r0 = x0 *  2.3706743 + y0 * -0.9000405 + z0 * -0.4706338;
+			final double g0 = x0 * -0.5138850 + y0 *  1.4253036 + z0 *  0.0885814;
+			final double b0 = x0 *  0.0052982 + y0 * -0.0146949 + z0 *  1.0093968;
 
-			final double r1 = (r0 > 0.0031308) ? (1.055 * Math.pow(r0, 1 / 2.4) - 0.055) : 12.92 * r0;
-			final double g1 = (g0 > 0.0031308) ? (1.055 * Math.pow(g0, 1 / 2.4) - 0.055) : 12.92 * g0;
-			final double b1 = (b0 > 0.0031308) ? (1.055 * Math.pow(b0, 1 / 2.4) - 0.055) : 12.92 * b0;
+			final int red = (int) Math.round(r0 * 255);
+			final int green = (int) Math.round(g0 * 255);
+			final int blue = (int) Math.round(b0 * 255);
 
-			if (r1 >= -0.000001 && r1 <= 1.000001 && g1 >= -0.000001 && g1 <= 1.000001 && b1 >= -0.000001
-					&& b1 <= 1.000001) {
-				final int red = (int) Math.round(r1 * 255);
-				final int green = (int) Math.round(g1 * 255);
-				final int blue = (int) Math.round(b1 * 255);
+			if ((red & 0xFF) == red && (green & 0xFF) == green && (blue & 0xFF) == blue) {
 				return 0xFF000000 | (red << 16) | (green << 8) | blue;
 			} else {
 				return NO_COLOR;
