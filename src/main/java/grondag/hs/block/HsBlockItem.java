@@ -23,6 +23,7 @@ import grondag.xm.api.modelstate.ModelState;
 import grondag.xm.api.modelstate.MutableModelState;
 import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
 import grondag.xm.api.paint.PaintIndex;
+import grondag.xm.modelstate.AbstractPrimitiveModelState;
 
 
 
@@ -47,37 +48,22 @@ public class HsBlockItem extends BlockItem {
 		final ItemStack itemStack = playerEntity.getStackInHand(hand);
 
 		if (world.isClient) {
-			MinecraftClient.getInstance().openScreen(new PaintScreen(itemStack));
+			MinecraftClient.getInstance().openScreen(new PaintScreen(itemStack, hand));
 		}
 
-		//		if (!world.isClient) {
-		//			final MutablePrimitiveState modelState = readModelState(itemStack, world);
-		//
-		//			//			final ArrayList<TextureSet> list = new ArrayList<>();
-		//
-		//			//			TextureSetRegistry.instance().forEach(t -> {
-		//			//				if (!t.id().getNamespace().equals("minecraft") && (t.textureGroupFlags() & TextureGroup.STATIC_TILES.bitFlag) != 0) {
-		//			//					list.add(t);
-		//			//				}
-		//			//			});
-		//
-		//			if (!modelState.isStatic()) {
-		//				final XmPaint newPaint = XmPaint.finder()
-		//						.copy(modelState.paint(0))
-		//						//						.texture(0, list.get(ThreadLocalRandom.current().nextInt(list.size())))
-		//						.textureColor(0, 0xFF000000 | ThreadLocalRandom.current().nextInt(0xFFFFFF)).find();
-		//
-		//				modelState.paintAll(newPaint);
-		//
-		//				writeModelState(itemStack, modelState);
-		//
-		//				playerEntity.setStackInHand(hand, itemStack);
-		//			}
-		//
-		//			modelState.release();
-		//		}
-
 		return TypedActionResult.success(itemStack);
+	}
+
+	public void acceptClientModelStateUpdate(PlayerEntity player, ItemStack itemStack, ModelState modelState, boolean offHand) {
+		final MutablePrimitiveState stackState = readModelState(itemStack, player.world);
+
+		if (!modelState.isStatic() && stackState.primitive()  == ((AbstractPrimitiveModelState<?, ?, ?>) modelState).primitive()) {
+			stackState.copyFrom(modelState);
+			writeModelState(itemStack, stackState);
+			player.setStackInHand(offHand ? Hand.OFF_HAND : Hand.MAIN_HAND, itemStack);
+		}
+
+		stackState.release();
 	}
 
 	public MutablePrimitiveState readModelState(ItemStack stack, World world) {

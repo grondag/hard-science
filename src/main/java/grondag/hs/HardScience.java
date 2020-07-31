@@ -32,9 +32,11 @@ import grondag.hs.block.HsBlocks;
 import grondag.hs.earnest.EarnestPlayerState;
 import grondag.hs.entity.Entities;
 import grondag.hs.packet.c2s.EarnestDialogC2S;
+import grondag.hs.packet.c2s.UpdateStackPaintC2S;
 import grondag.xm.api.texture.XmTextures;
 import grondag.xm.api.texture.core.CoreTextures;
 import grondag.xm.api.texture.tech.TechTextures;
+import grondag.xm.api.texture.unstable.UnstableTextures;
 
 public class HardScience implements ModInitializer {
 	public static final Logger LOG = LogManager.getLogger("Hard Science");
@@ -50,6 +52,7 @@ public class HardScience implements ModInitializer {
 		EntityComponents.setRespawnCopyStrategy(EarnestPlayerState.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
 
 		ServerSidePacketRegistry.INSTANCE.register(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
+		ServerSidePacketRegistry.INSTANCE.register(UpdateStackPaintC2S.IDENTIFIER, UpdateStackPaintC2S::handle);
 
 		HsBlocks.init();
 
@@ -68,6 +71,109 @@ public class HardScience implements ModInitializer {
 
 		TechTextures.DECAL_PLUS.use();
 		TechTextures.DECAL_MINUS.use();
+
+
+		UnstableTextures.BIGTEX_ASPHALT.use();
+		UnstableTextures.BIGTEX_CRACKED_EARTH.use();
+		UnstableTextures.BIGTEX_MARBLE.use();
+		UnstableTextures.BIGTEX_ROUGH_ROCK.use();
+		UnstableTextures.BIGTEX_WEATHERED_STONE.use();
+		UnstableTextures.BIGTEX_WOOD.use();
+		UnstableTextures.BIGTEX_WOOD_FLIP.use();
+		UnstableTextures.BIGTEX_WORN_ASPHALT.use();
+		UnstableTextures.BORDER_CAUTION.use();
+		UnstableTextures.BORDER_CHECKERBOARD.use();
+		UnstableTextures.BORDER_FILMSTRIP.use();
+		UnstableTextures.BORDER_GROOVY_PINSTRIPES.use();
+		UnstableTextures.BORDER_SIGNAL.use();
+		UnstableTextures.BORDER_LOGIC.use();
+		UnstableTextures.BORDER_GRITTY_CHECKERBOARD.use();
+		UnstableTextures.BORDER_GRITTY_PINSTRIPE_GROOVES.use();
+		UnstableTextures.BORDER_GRITTY_CHECKERBOARD.use();
+		UnstableTextures.BORDER_GRITTY_SIGNAL.use();
+		UnstableTextures.DECAL_DIAGONAL_BARS.use();
+
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_THICK_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_THICK_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_SKINNY_DIAGNAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_FAT_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_FAT_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_SKINNY_BARS.use();
+		UnstableTextures.DECAL_FAT_BARS.use();
+		UnstableTextures.DECAL_THICK_BARS.use();
+		UnstableTextures.DECAL_THIN_BARS.use();
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_THICK_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_FAT_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_SKINNY_BARS_90.use();
+		UnstableTextures.DECAL_FAT_BARS_90.use();
+		UnstableTextures.DECAL_THICK_BARS_90.use();
+		UnstableTextures.DECAL_THIN_BARS_90.use();
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_THICK_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_THIN_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_SKINNY_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_FAT_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_SKINNY_BARS_RANDOM.use();
+		UnstableTextures.DECAL_FAT_BARS_RANDOM.use();
+		UnstableTextures.DECAL_THICK_BARS_RANDOM.use();
+		UnstableTextures.DECAL_THIN_BARS_RANDOM.use();
+
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_THICK_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_THICK_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGNAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_SOFT_FAT_DIAGONAL_CROSS_BARS.use();
+		UnstableTextures.DECAL_SOFT_FAT_DIAGONAL_BARS.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_CROSS_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_RIDGES.use();
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_SOFT_THICK_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_RIDGES_90.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_SOFT_FAT_DIAGONAL_BARS_90.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_RIDGES_90.use();
+
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_THICK_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_RIDGES_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_THIN_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_SKINNY_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_FAT_DIAGONAL_BARS_RANDOM.use();
+		UnstableTextures.DECAL_SOFT_DIAGONAL_RIDGES_RANDOM.use();
+
+		UnstableTextures.TILE_DOTS.use();
+		UnstableTextures.TILE_DOTS_SUBTLE.use();
+		UnstableTextures.TILE_DOTS_INVERSE.use();
+		UnstableTextures.TILE_DOTS_INVERSE_SUBTLE.use();
 
 		CoreTextures.TILE_COBBLE.use();
 		CoreTextures.BORDER_COBBLE.use();

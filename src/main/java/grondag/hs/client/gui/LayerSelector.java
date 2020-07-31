@@ -40,9 +40,8 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 	protected boolean isSelected = false;
 	protected boolean isClearable = true;
 	protected int rgb = -1;
-	protected int srgb = -1;
 
-	Consumer<TextureSet> onSelected = t -> {};
+	Consumer<Action> onAction = a -> {};
 
 	protected TextureSet tex;
 
@@ -76,19 +75,18 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 					bottom, 1, currentMouseLocation == MouseLocation.TEXTURE ? theme.buttonColorFocus : theme.buttonColorActive);
 		}
 
-		TextureSet tex = this.tex;
-
 		final BufferBuilder buffer =  TextureUtil.setupRendering(renderContext);
 
-		int color = srgb;
-
-
 		if (tex == null) {
-			tex = TechTextures.DECAL_PLUS;
-			color = 0xFF50FF50;
+			TextureUtil.bufferTexture(buffer, left + itemSelectionMargin + 4, top + itemSelectionMargin + 4, itemSize - 8, 0xFF50FF50, TechTextures.DECAL_PLUS);
+		} else {
+			TextureUtil.bufferTexture(buffer, left + itemSelectionMargin, top + itemSelectionMargin, itemSize, rgb, tex);
+
+			if (isClearable) {
+				TextureUtil.bufferTexture(buffer, left + itemSize + itemSelectionMargin * 2 + 4, top + itemSelectionMargin + 4, itemSize - 8, 0xFFFF5050, TechTextures.DECAL_MINUS);
+			}
 		}
 
-		TextureUtil.bufferTexture(buffer, left + itemSelectionMargin, top + itemSelectionMargin, itemSize, color, tex);
 		TextureUtil.tearDownRendering();
 	}
 
@@ -122,12 +120,12 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 
 		switch (currentMouseLocation) {
 		case TEXTURE:
-			onSelected.accept(tex);
+			onAction.accept(tex == null ? Action.CREATE : Action.SELECT);
 			break;
 
 		case CLEAR:
 			tex = null;
-			onSelected.accept(tex);
+			onAction.accept(Action.CLEAR);
 			break;
 
 		case NONE:
@@ -137,8 +135,8 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 		}
 	}
 
-	public void onSelected(Consumer<TextureSet> onSelected) {
-		this.onSelected = onSelected;
+	public void onAction(Consumer<Action> onAction) {
+		this.onAction = onAction;
 	}
 
 	@Override
@@ -153,11 +151,6 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 
 	public void setRgb(int rgb) {
 		this.rgb = rgb;
-		srgb = ColorUtil.rbgLinearToSrgb(rgb);
-	}
-
-	public int getRgb() {
-		return rgb;
 	}
 
 	public void setItemSize(int itemSize) {
@@ -174,5 +167,11 @@ public class LayerSelector extends AbstractControl<LayerSelector> {
 
 	public void setClearable(boolean isClearable) {
 		this.isClearable = isClearable;
+	}
+
+	public enum Action  {
+		CREATE,
+		SELECT,
+		CLEAR
 	}
 }

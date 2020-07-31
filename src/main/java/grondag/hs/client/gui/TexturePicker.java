@@ -11,15 +11,13 @@ import net.minecraft.client.util.math.MatrixStack;
 import grondag.fermion.gui.ScreenRenderContext;
 import grondag.fermion.gui.control.TabBar;
 import grondag.xm.api.texture.TextureGroup;
-import grondag.xm.api.texture.TextureRenderIntent;
 import grondag.xm.api.texture.TextureSet;
 import grondag.xm.api.texture.TextureSetRegistry;
 
 public class TexturePicker extends TabBar<TextureSet> {
 	protected Consumer<TextureSet> onChanged = t -> {};
-
 	protected int rgb = -1;
-	protected int srgb = -1;
+	protected boolean notify = false;
 
 	public TexturePicker(ScreenRenderContext renderContext) {
 		super(renderContext, new ArrayList<TextureSet>());
@@ -29,7 +27,7 @@ public class TexturePicker extends TabBar<TextureSet> {
 		setItemsPerRow(5);
 
 		TextureSetRegistry.instance().forEach(t -> {
-			if (t.renderIntent() != TextureRenderIntent.OVERLAY_ONLY && (t.textureGroupFlags() & TextureGroup.HIDDEN) == 0 && t.used()) {
+			if ((t.textureGroupFlags() & TextureGroup.HIDDEN) == 0 && t.used()) { //t.renderIntent() != TextureRenderIntent.OVERLAY_ONLY
 				items.add(t);
 			}
 		});
@@ -58,21 +56,41 @@ public class TexturePicker extends TabBar<TextureSet> {
 
 	@Override
 	protected void drawItem(MatrixStack matrixStack, TextureSet item, MinecraftClient mc, ItemRenderer itemRender, double left, double top, float partialTicks, boolean isHighlighted) {
-		TextureUtil.bufferTexture(Tessellator.getInstance().getBuffer(), left, top, itemSize, srgb, item);
+		TextureUtil.bufferTexture(Tessellator.getInstance().getBuffer(), left, top, itemSize, rgb, item);
 	}
 
 	@Override
 	public void setSelectedIndex(int index) {
 		super.setSelectedIndex(index);
 
-		if (index != NO_SELECTION && items != null) {
+		if (notify && index != NO_SELECTION && items != null) {
 			onChanged.accept(items.get(index));
 		}
 	}
 
+	@Override
+	protected void handleMouseClick(double mouseX, double mouseY, int clickedMouseButton) {
+		notify = true;
+		super.handleMouseClick(mouseX, mouseY, clickedMouseButton);
+		notify = false;
+	}
+
+	@Override
+	protected void handleMouseDrag(double mouseX, double mouseY, int clickedMouseButton, double dx, double dy) {
+		notify = true;
+		super.handleMouseDrag(mouseX, mouseY, clickedMouseButton, dx, dy);
+		notify = false;
+	}
+
+	@Override
+	protected void handleMouseScroll(double mouseX, double mouseY, double scrollDelta) {
+		notify = true;
+		super.handleMouseScroll(mouseX, mouseY, scrollDelta);
+		notify = false;
+	}
+
 	public void setRgb(int rgb) {
 		this.rgb = rgb;
-		srgb = ColorUtil.rbgLinearToSrgb(rgb);
 	}
 
 	public int getRgb() {

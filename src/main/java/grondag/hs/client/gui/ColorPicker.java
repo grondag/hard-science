@@ -16,8 +16,7 @@
 package grondag.hs.client.gui;
 
 import static grondag.hs.client.gui.ColorUtil.NO_COLOR;
-import static grondag.hs.client.gui.ColorUtil.hclToRgb;
-import static grondag.hs.client.gui.ColorUtil.rbgLinearToSrgb;
+import static grondag.hs.client.gui.ColorUtil.hclToSrgb;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
@@ -41,21 +40,21 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	/**
 	 * Hue chosen by user, or set at init - will match currrent rbg
 	 */
-	private int hue = DEFAULT_HCL & 0xFFFF;
+	private int hue = DEFAULT_WHITE_HCL & 0xFFFF;
 
 	/**
 	 * Chroma last chosen by user, may not match current rgb
 	 */
-	private int chroma =  (DEFAULT_HCL >> 16) & 0xFF;
+	private int chroma =  (DEFAULT_WHITE_HCL >> 16) & 0xFF;
 
 	private int effectiveChroma = chroma;
 
 	/**
 	 * Luminance last chosen by user, will match current rgb
 	 */
-	private int luminance = (DEFAULT_HCL >> 24) & 0xFF;
+	private int luminance = (DEFAULT_WHITE_HCL >> 24) & 0xFF;
 
-	private int rgb = DEFAULT_RGB;
+	private int rgb = DEFAULT_WHITE_RGB;
 
 	private IntConsumer onRgbChange = i -> {};
 
@@ -66,13 +65,15 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 	}
 
 	public void setRgb(int rgb) {
-		this.rgb = rgb;
-		final int hcl = RGB_TO_HCL.get(rgb);
+		if (rgb != this.rgb) {
+			this.rgb = rgb;
+			final int hcl = RGB_TO_HCL.get(rgb);
 
-		luminance = (hcl >> 24) & 0xFF;
-		chroma = (hcl >> 16) & 0xFF;
-		effectiveChroma = chroma;
-		changeHueIfDifferent(hcl & 0xFFFF);
+			luminance = (hcl >> 24) & 0xFF;
+			chroma = (hcl >> 16) & 0xFF;
+			effectiveChroma = chroma;
+			changeHueIfDifferent(hcl & 0xFFFF);
+		}
 	}
 
 	public void onChange(IntConsumer onRgbChange) {
@@ -225,7 +226,7 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			final int hl = hue | ((lum * LUMA_SLICE_SIZE) << 24);
 
 			for (int chr = 0; chr < CHROMA_SLICE_COUNT; ++chr) {
-				mix[lum][chr] = rbgLinearToSrgb(HCL_TO_RGB.get(hl | ((chr * CHROMA_SLICE_SIZE) << 16)));
+				mix[lum][chr] = HCL_TO_RGB.get(hl | ((chr * CHROMA_SLICE_SIZE) << 16));
 			}
 		}
 	}
@@ -240,7 +241,7 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 					onRgbChange.accept(rgb);
 				}
 			}
-		}else {
+		} else {
 			final float lSpan = (height - 14) / LUMA_SLICE_COUNT;
 			final float cSpan = height * 2 / CHROMA_SLICE_COUNT;
 
@@ -310,8 +311,9 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 
 	private static final int[] HUE_COLORS = new int[360 / ARC_DEGREES + 2];
 
-	private static final int DEFAULT_RGB;
-	private static final int DEFAULT_HCL = 100 << 24;
+	private static final int DEFAULT_WHITE_HCL = 96 << 24;
+	public static final int DEFAULT_WHITE_RGB = hclToSrgb(0, 0, 96);
+
 
 	static {
 		for (int hIndex = 0; hIndex < HUE_COLORS.length; ++hIndex) {
@@ -324,7 +326,7 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 					final int c = chr * CHROMA_SLICE_SIZE;
 					final int l = lum * LUMA_SLICE_SIZE;
 
-					final int rgb = hclToRgb(h, c, l);
+					final int rgb = hclToSrgb(h, c, l);
 
 					if (rgb != NO_COLOR) {
 						final int hcl = h | (c << 16) | (l << 24);
@@ -336,6 +338,9 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 			}
 		}
 
-		DEFAULT_RGB = HCL_TO_RGB.get(DEFAULT_HCL);
+		assert DEFAULT_WHITE_RGB == HCL_TO_RGB.get(DEFAULT_WHITE_HCL);
 	}
+
+
+
 }
