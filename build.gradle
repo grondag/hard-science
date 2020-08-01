@@ -150,7 +150,7 @@ publishing {
 	}
 }
 
-giithubRelease {
+githubRelease {
 	token project.hasProperty("github_releases_token") ? project.github_releases_token : ""
 	if(project.hasProperty("github_repository_owner")) {
 		owner project.github_repository_owner
