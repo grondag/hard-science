@@ -17,6 +17,10 @@ repositories {
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven"
 	}
+	maven {
+		name = "NerdHubMC"
+		url = "https://maven.abusedmaster.xyz/"
+	}
 }
 
 dependencies {
@@ -31,6 +35,9 @@ dependencies {
 		
 	modImplementation ("grondag:exotic-matter-${project.mc_tag}:${project.exotic_matter_version}.+") { transitive = false }
 	modImplementation ("grondag:exotic-art-core-${project.mc_tag}:${project.exotic_art_core_version}.+") { transitive = false }
+	modImplementation ("grondag:exotic-art-tech-${project.mc_tag}:${project.exotic_art_tech_version}.+") { transitive = false }
+	modImplementation ("grondag:exotic-art-unstable-${project.mc_tag}:${project.exotic_art_unstable_version}.+") { transitive = false }
+	
 	modImplementation ("grondag:frex-${project.mc_tag}:${project.frex_version}.+") { transitive = false }
 	modImplementation ("grondag:fermion-${project.mc_tag}:${project.fermion_version}.+") { transitive = false }
 	modImplementation ("grondag:fermion-modkeys-${project.mc_tag}:${project.fermion_modkeys_version}.+") { transitive = false }
@@ -39,6 +46,7 @@ dependencies {
     modImplementation ("grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+") { transitive = false }
     modImplementation ("grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+") { transitive = false }
     modImplementation ("grondag:fonthack-${project.mc_tag}:${project.fonthack_version}.+") { transitive = false }
+    modImplementation ("grondag:mcmarkdown-${project.mc_tag}:${project.mcmarkdown_version}.+") { transitive = false }
 	modImplementation ("grondag:fluidity-${project.mc_tag}:${project.fluidity_version}.+") { transitive = false }
     
     modImplementation ("io.github.cottonmc:Jankson-Fabric:${jankson_version}") {
@@ -61,6 +69,12 @@ dependencies {
     	 exclude(module: "ModMenu")
     }
 	
+	// Replace modImplementation with modApi if you expose components in your own API
+    modImplementation "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${cca_version}"
+    modImplementation "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-util:${cca_version}"
+    modImplementation "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${cca_version}"
+    modImplementation "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-level:${cca_version}"
+    
 	include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
     include "me.shedaniel.cloth:config-2:${project.clothconfig_version}"
 	include "grondag:fonthack-${project.mc_tag}:${project.fonthack_version}.+"
@@ -75,6 +89,11 @@ dependencies {
     include "grondag:fermion-varia-${project.mc_tag}:${project.fermion_varia_version}.+"
     include "grondag:fermion-orientation-${project.mc_tag}:${project.fermion_orientation_version}.+"
     include "grondag:special-circumstances-${project.mc_tag}:${project.special_circumstances_version}.+"
+    include "grondag:mcmarkdown-${project.mc_tag}:${project.mcmarkdown_version}.+"
 	include "io.github.cottonmc:Jankson-Fabric:${jankson_version}"
 	include "me.shedaniel.cloth:config-2:${clothconfig_version}"
+	include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-base:${cca_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-util:${cca_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-entity:${cca_version}"
+    include "io.github.onyxstudios.Cardinal-Components-API:cardinal-components-level:${cca_version}"
 }
