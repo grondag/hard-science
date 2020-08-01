@@ -67,6 +67,8 @@ dependencies {
 	include "grondag:fluidity-${project.mc_tag}:${project.fluidity_version}.+"
 	include "grondag:exotic-matter-${project.mc_tag}:${project.exotic_matter_version}.+"
 	include "grondag:exotic-art-core-${project.mc_tag}:${project.exotic_art_core_version}.+"
+	include "grondag:exotic-art-tech-${project.mc_tag}:${project.exotic_art_tech_version}.+"
+	include "grondag:exotic-art-unstable-${project.mc_tag}:${project.exotic_art_unstable_version}.+"
 	include "grondag:fermion-${project.mc_tag}:${project.fermion_version}.+"
 	include "grondag:fermion-modkeys-${project.mc_tag}:${project.fermion_modkeys_version}.+"
 	include "grondag:fermion-gui-${project.mc_tag}:${project.fermion_gui_version}.+"
