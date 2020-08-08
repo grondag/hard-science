@@ -15,8 +15,8 @@
  ******************************************************************************/
 package grondag.hs.client.gui;
 
-import static grondag.hs.client.gui.ColorUtil.NO_COLOR;
-import static grondag.hs.client.gui.ColorUtil.hclToSrgb;
+import static grondag.fermion.color.ColorUtil.NO_COLOR;
+import static grondag.fermion.color.ColorUtil.hclToSrgb;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
