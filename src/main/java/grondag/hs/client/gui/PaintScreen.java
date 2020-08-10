@@ -12,6 +12,7 @@ import grondag.fermion.gui.ScreenTheme;
 import grondag.fermion.gui.control.Button;
 import grondag.fermion.gui.control.Slider;
 import grondag.fermion.gui.control.Toggle;
+import grondag.hs.init.HsColors;
 import grondag.hs.packet.c2s.UpdateStackPaintC2S;
 import grondag.xm.api.paint.XmPaint;
 import grondag.xm.api.paint.XmPaintFinder;
@@ -234,7 +235,7 @@ public class PaintScreen extends AbstractSimpleScreen {
 			finder.copy(modelState.paint(0));
 			finder.textureDepth(index + 1);
 			finder.texture(index, XmTextures.TILE_NOISE_SUBTLE);
-			finder.textureColor(index, ColorPicker.DEFAULT_WHITE_RGB);
+			finder.textureColor(index, HsColors.DEFAULT_WHITE_RGB);
 			modelState.paint(0, finder.find());
 			modelPreview.setModelDirty();
 			readMaterial();

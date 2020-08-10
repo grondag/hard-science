@@ -4,7 +4,7 @@ import static grondag.hs.HardScience.REG;
 
 import net.minecraft.block.entity.BlockEntityType;
 
-import grondag.hs.client.gui.ColorPicker;
+import grondag.hs.init.HsColors;
 import grondag.xm.api.block.XmBlockRegistry;
 import grondag.xm.api.connect.species.SpeciesProperty;
 import grondag.xm.api.modelstate.primitive.PrimitiveState;
@@ -16,7 +16,7 @@ import grondag.xm.api.texture.XmTextures;
 public abstract class HsBlocks {
 	private HsBlocks() { }
 
-	public static final XmPaint DEFAULT_PAINT = XmPaint.finder().texture(0, XmTextures.TILE_NOISE_LIGHT).textureColor(0, ColorPicker.DEFAULT_WHITE_RGB).find();
+	public static final XmPaint DEFAULT_PAINT = XmPaint.finder().texture(0, XmTextures.TILE_NOISE_LIGHT).textureColor(0, HsColors.DEFAULT_WHITE_RGB).find();
 
 	public static final PrimitiveState CUBE_DEFAULT_STATE = Cube.INSTANCE.newState().paintAll(DEFAULT_PAINT).releaseToImmutable();
 	public static final HsBlock DURACRETE_CUBE = REG.blockNoItem("dcc", new HsSpeciesBlock(HsBlockSettings.duraCrete(), HsBlocks::cubeBe, CUBE_DEFAULT_STATE));

@@ -16,10 +16,18 @@
 package grondag.hs.client.gui;
 
 import static grondag.fermion.color.ColorUtil.NO_COLOR;
-import static grondag.fermion.color.ColorUtil.hclToSrgb;
+import static grondag.hs.init.HsColors.ARC_DEGREES;
+import static grondag.hs.init.HsColors.CHROMA_SLICE_COUNT;
+import static grondag.hs.init.HsColors.CHROMA_SLICE_SIZE;
+import static grondag.hs.init.HsColors.DEFAULT_WHITE_HCL;
+import static grondag.hs.init.HsColors.DEFAULT_WHITE_RGB;
+import static grondag.hs.init.HsColors.HCL_TO_RGB;
+import static grondag.hs.init.HsColors.HUE_COLORS;
+import static grondag.hs.init.HsColors.LUMA_SLICE_COUNT;
+import static grondag.hs.init.HsColors.LUMA_SLICE_SIZE;
+import static grondag.hs.init.HsColors.RGB_TO_HCL;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntConsumer;
 import org.lwjgl.opengl.GL21;
 
@@ -31,7 +39,6 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 
-import grondag.fermion.color.Color;
 import grondag.fermion.gui.ScreenRenderContext;
 import grondag.fermion.gui.control.AbstractControl;
 
@@ -297,50 +304,4 @@ public class ColorPicker extends AbstractControl<ColorPicker> {
 		// NOOP
 
 	}
-
-	private static final Int2IntOpenHashMap RGB_TO_HCL = new Int2IntOpenHashMap();
-	private static final Int2IntOpenHashMap HCL_TO_RGB = new Int2IntOpenHashMap();
-
-	private static final int CHROMA_SLICE_SIZE = 2;
-	private static final int CHROMA_SLICE_COUNT = 51;
-
-	private static final int LUMA_SLICE_SIZE = 4;
-	private static final int LUMA_SLICE_COUNT = 26;
-
-	private static final int ARC_DEGREES = 5;
-
-	private static final int[] HUE_COLORS = new int[360 / ARC_DEGREES + 2];
-
-	private static final int DEFAULT_WHITE_HCL = 96 << 24;
-	public static final int DEFAULT_WHITE_RGB = hclToSrgb(0, 0, 96);
-
-
-	static {
-		for (int hIndex = 0; hIndex < HUE_COLORS.length; ++hIndex) {
-			HUE_COLORS[hIndex] = Color.fromHCL(hIndex * ARC_DEGREES, Color.HCL_MAX, Color.HCL_MAX).ARGB | 0xFF000000;
-		}
-
-		for (int h = 0; h < 360; ++h) {
-			for (int lum = 0; lum < LUMA_SLICE_COUNT; ++lum) {
-				for (int chr = 0; chr < CHROMA_SLICE_COUNT; ++chr) {
-					final int c = chr * CHROMA_SLICE_SIZE;
-					final int l = lum * LUMA_SLICE_SIZE;
-
-					final int rgb = hclToSrgb(h, c, l);
-
-					if (rgb != NO_COLOR) {
-						final int hcl = h | (c << 16) | (l << 24);
-
-						RGB_TO_HCL.put(rgb, hcl);
-						HCL_TO_RGB.put(hcl, rgb);
-					}
-				}
-			}
-		}
-
-		assert DEFAULT_WHITE_RGB == HCL_TO_RGB.get(DEFAULT_WHITE_HCL);
-	}
-
-
-
 }
