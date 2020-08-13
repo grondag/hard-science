@@ -5,7 +5,7 @@ import java.util.IdentityHashMap;
 import com.google.common.collect.ImmutableList;
 import io.netty.buffer.Unpooled;
 
-import net.minecraft.command.arguments.EntityAnchorArgumentType.EntityAnchor;
+import net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
