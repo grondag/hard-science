@@ -1,6 +1,8 @@
 package grondag.hs.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import grondag.fermion.gui.ScreenRenderContext;
+import grondag.xm.api.texture.TextureSet;
 import org.lwjgl.opengl.GL21;
 
 import net.minecraft.client.render.BufferBuilder;
@@ -9,13 +11,10 @@ import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 
-import grondag.fermion.gui.ScreenRenderContext;
-import grondag.xm.api.texture.TextureSet;
-
 public class TextureUtil {
 	public static BufferBuilder setupRendering(ScreenRenderContext renderContext) {
-		renderContext.minecraft().getTextureManager().bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX);
-		renderContext.minecraft().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEX).setFilter(false, false);
+		renderContext.minecraft().getTextureManager().bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+		renderContext.minecraft().getTextureManager().getTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).setFilter(false, false);
 		RenderSystem.enableTexture();
 		RenderSystem.enableBlend();
 		RenderSystem.disableAlphaTest();
