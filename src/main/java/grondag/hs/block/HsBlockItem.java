@@ -2,7 +2,13 @@ package grondag.hs.block;
 
 import java.util.function.BiFunction;
 
-import javax.annotation.Nullable;
+import grondag.hs.client.gui.PaintScreen;
+import grondag.xm.api.modelstate.ModelState;
+import grondag.xm.api.modelstate.MutableModelState;
+import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
+import grondag.xm.api.paint.PaintIndex;
+import grondag.xm.modelstate.AbstractPrimitiveModelState;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -17,13 +23,6 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-
-import grondag.hs.client.gui.PaintScreen;
-import grondag.xm.api.modelstate.ModelState;
-import grondag.xm.api.modelstate.MutableModelState;
-import grondag.xm.api.modelstate.primitive.MutablePrimitiveState;
-import grondag.xm.api.paint.PaintIndex;
-import grondag.xm.modelstate.AbstractPrimitiveModelState;
 
 
 
