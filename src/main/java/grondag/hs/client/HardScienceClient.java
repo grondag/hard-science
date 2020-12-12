@@ -16,8 +16,8 @@
 package grondag.hs.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendereregistry.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
 
 import grondag.fermion.client.ClientRegistrar;
 import grondag.hs.HardScience;
@@ -32,8 +32,8 @@ public class HardScienceClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		ClientSidePacketRegistry.INSTANCE.register(EarnestEntity.IDENTIFIER, EarnestSpawnS2C::accept);
-		ClientSidePacketRegistry.INSTANCE.register(EarnestDialogS2C.IDENTIFIER, EarnestDialogS2C::handle);
+		ClientPlayNetworking.registerGlobalReceiver(EarnestEntity.IDENTIFIER, EarnestSpawnS2C::accept);
+		ClientPlayNetworking.registerGlobalReceiver(EarnestDialogS2C.IDENTIFIER, EarnestDialogS2C::handle);
 		EntityRendererRegistry.INSTANCE.register(Entities.EARNEST,
 				(entityRenderDispatcher, context) -> new EarnestEntityRenderer(entityRenderDispatcher));
 	}

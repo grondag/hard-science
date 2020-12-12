@@ -3,6 +3,7 @@ package grondag.hs.packet.s2c;
 import io.netty.buffer.Unpooled;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.Packet;
@@ -12,8 +13,8 @@ import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.network.PacketContext;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import grondag.hs.HardScience;
 import grondag.hs.client.earnest.EarnestClientState;
@@ -55,33 +56,33 @@ public enum EarnestDialogS2C {
 			buf.writeString(dialoge.actions.get(i).playerText);
 		}
 
-		final Packet<?> packet = ServerSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
-		ServerSidePacketRegistry.INSTANCE.sendToPlayer(player, packet);
+		final Packet<?> packet = ServerPlayNetworking.createS2CPacket(IDENTIFIER, buf);
+		player.networkHandler.sendPacket(packet);
 	}
 
 	@Environment(EnvType.CLIENT)
-	public static void handle(PacketContext context, PacketByteBuf buf) {
-		final PlayerEntity player = context.getPlayer();
+	public static void handle(MinecraftClient client, ClientPlayNetworkHandler ignored, PacketByteBuf buffer, PacketSender responseSender) {
+		final PlayerEntity player = client.player;
 
 		if (player == null) {
 			return;
 		}
 
-		final EarnestDialogS2C handler = VALUES[buf.readByte()];
-		final String playerText = buf.readString();
-		final String npcText = buf.readString();
+		final EarnestDialogS2C handler = VALUES[buffer.readByte()];
+		final String playerText = buffer.readString();
+		final String npcText = buffer.readString();
 
-		final int limit = buf.readVarInt();
+		final int limit = buffer.readVarInt();
 		final String[] actions = new String[limit];
 
 		for (int i = 0; i < limit; ++i) {
-			actions[i] = buf.readString();
+			actions[i] = buffer.readString();
 		}
 
-		if (context.getTaskQueue().isOnThread()) {
+		if (client.isOnThread()) {
 			handler.handle(player, playerText, npcText, actions);
 		} else {
-			context.getTaskQueue().execute(() -> handler.handle(player, playerText, npcText, actions));
+			client.execute(() -> handler.handle(player, playerText, npcText, actions));
 		}
 	}
 

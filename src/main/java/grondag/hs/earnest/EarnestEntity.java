@@ -23,7 +23,7 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import grondag.hs.HardScience;
 import grondag.hs.client.earnest.EarnestClientState;
@@ -76,7 +76,7 @@ public class EarnestEntity extends LivingEntity implements Npc {
 	public Packet<?> createSpawnPacket() {
 		final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 		toBuffer(buf);
-		return ServerSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
+		return ServerPlayNetworking.createS2CPacket(IDENTIFIER, buf);
 	}
 
 	/**

@@ -25,7 +25,7 @@ import org.apache.logging.log4j.Logger;
 import net.minecraft.entity.player.PlayerEntity;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.network.ServerSidePacketRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import grondag.fermion.registrar.Registrar;
 import grondag.hs.block.HsBlocks;
@@ -51,8 +51,8 @@ public class HardScience implements ModInitializer {
 		EntityComponentCallback.event(PlayerEntity.class).register((player, components) -> components.put(EarnestPlayerState.COMPONENT, new EarnestPlayerState(player)));
 		EntityComponents.setRespawnCopyStrategy(EarnestPlayerState.COMPONENT, RespawnCopyStrategy.ALWAYS_COPY);
 
-		ServerSidePacketRegistry.INSTANCE.register(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
-		ServerSidePacketRegistry.INSTANCE.register(UpdateStackPaintC2S.IDENTIFIER, UpdateStackPaintC2S::handle);
+		ServerPlayNetworking.registerGlobalReceiver(EarnestDialogC2S.IDENTIFIER, EarnestDialogC2S::handle);
+		ServerPlayNetworking.registerGlobalReceiver(UpdateStackPaintC2S.IDENTIFIER, UpdateStackPaintC2S::handle);
 
 		HsBlocks.init();
 

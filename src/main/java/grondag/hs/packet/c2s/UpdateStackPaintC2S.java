@@ -2,17 +2,20 @@ package grondag.hs.packet.c2s;
 
 import io.netty.buffer.Unpooled;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.Packet;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayNetworkHandler;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.fabricmc.fabric.api.network.PacketContext;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
 
 import grondag.hs.HardScience;
 import grondag.hs.block.HsBlockItem;
@@ -25,16 +28,15 @@ public enum UpdateStackPaintC2S {
 
 	@Environment(EnvType.CLIENT)
 	public static void send(ModelState state, Hand hand) {
-		final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-		buf.writeBoolean(hand == Hand.OFF_HAND);
-		state.toBytes(buf);
-		final Packet<?> packet = ClientSidePacketRegistry.INSTANCE.toPacket(IDENTIFIER, buf);
-		ClientSidePacketRegistry.INSTANCE.sendToServer(packet);
+		if (MinecraftClient.getInstance().getNetworkHandler() != null) {
+			final PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+			buf.writeBoolean(hand == Hand.OFF_HAND);
+			state.toBytes(buf);
+			ClientPlayNetworking.send(IDENTIFIER, buf);
+		}
 	}
 
-	public static void handle(PacketContext context, PacketByteBuf buf) {
-		final PlayerEntity player = context.getPlayer();
-
+	public static void handle(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
 		if (player == null) {
 			return;
 		}
@@ -42,10 +44,10 @@ public enum UpdateStackPaintC2S {
 		final boolean offHand = buf.readBoolean();
 		final ModelState modelState = ModelState.fromBytes(buf, PaintIndex.forWorld(player.world));
 
-		if (context.getTaskQueue().isOnThread()) {
+		if (server.isOnThread()) {
 			handle(player, modelState, offHand);
 		} else {
-			context.getTaskQueue().execute(() -> handle(player, modelState, offHand));
+			server.execute(() -> handle(player, modelState, offHand));
 		}
 	}
 
